@@ -11,7 +11,8 @@ legirag ("Legirag") is a French legal AI agent: given a legal question in
 plain French, it identifies the relevant code(s), unfolds the graph of
 cross-references between articles and codes, dates each text, cites the precise
 article, and states explicitly what it cannot cover. Corpus: the 73 French legal
-codes in force, open data. See `0-BRIEF-PRESTATAIRE.md` for the full brief.
+codes in force, open data. See `docs/private/0-BRIEF-PROJET.md` for the full
+brief (not tracked in git - local/private working document).
 
 This project is built with the **AI Blueprint**, a workflow layer, not an
 app skeleton. To start a new project, scaffold the app first in an empty folder

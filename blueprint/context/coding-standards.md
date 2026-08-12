@@ -36,7 +36,8 @@ directly - see `packages/shared/src/interfaces.ts`.
 
 > TODO: `web` (Next.js) and `api` (NestJS) are still stubs. Component, routing,
 > and styling conventions belong here once those packages have real code
-> (see `3-FEUILLE-DE-ROUTE.md` for the build order).
+> (see `docs/private/3-FEUILLE-DE-ROUTE.md` for the build order - not tracked
+> in git, local/private working document).
 
 ## File Organization
 
@@ -54,8 +55,10 @@ directly - see `packages/shared/src/interfaces.ts`.
 - Constants: SCREAMING_SNAKE_CASE
 - Types/Interfaces/Zod schema exports: PascalCase (no prefix)
 - Domain terms (`Etat`, `Citation`, `regle_principale`, ...) follow the French
-  vocabulary fixed in `1-CAHIER-DES-CHARGES-METIER.md` and
-  `2-CAHIER-DES-CHARGES-TECHNIQUE.md` - don't translate them to English mid-codebase
+  vocabulary fixed in `docs/private/1-CAHIER-DES-CHARGES-METIER.md` and
+  `docs/private/2-CAHIER-DES-CHARGES-TECHNIQUE.md` (not tracked in git,
+  local/private working documents) - don't translate them to English
+  mid-codebase
 
 ## Database
 

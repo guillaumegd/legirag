@@ -27,7 +27,8 @@ pnpm workspaces (`packages/*`), each package built independently with
 - `agent` - LangGraph.js graph, prompts, the fixed-chain path
 - `mcp` - MCP server exposing the agent's tools
 - `api` - NestJS HTTP layer (`POST /question`, rate limiting, cost guards)
-- `web` - Next.js + DSFR frontend
+- `web` - Next.js frontend, DSFR-inspired UI (not the DSFR's reserved visual
+  identity - see `project-plan.md` §7)
 
 Package boundaries stay swappable behind interfaces defined in `shared`
 (`Retriever`, `ModelProvider`) rather than importing a concrete implementation

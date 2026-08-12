@@ -111,8 +111,12 @@ A pnpm monorepo in strict TypeScript, organized into independent packages for
 the front end, the API, the agent layer, data access, ingestion, and the tool
 server (already scaffolded under `packages/`).
 
-- **Front end**: Next.js, using the French government design system (DSFR)
-  for the UI, with the answer streamed as it's produced
+- **Front end**: Next.js, with a DSFR-inspired UI - accessibility rigor and
+  institutional component conventions carried over, but a distinct accent
+  color and typeface, since legirag is not an official `.gouv.fr` service and
+  the DSFR's visual identity (Marianne blue, Marianne typeface, state
+  branding) is licensed for government use only; the answer streamed as it's
+  produced
 - **API**: NestJS - input validation, rejecting any response containing an
   unsourced claim, rate limiting, and a per-request cost cap
 - **Agent**: state-graph orchestration (LangGraph.js) with several
@@ -150,8 +154,9 @@ current version.
 
 ## 7. UI/UX - How should this look and feel?
 
-Understated and institutional, built on the French government design system
-(DSFR), designed to be understood without instructions.
+Understated and institutional, DSFR-inspired (accessible, no-nonsense
+government-service conventions) without reusing the DSFR's reserved visual
+identity, designed to be understood without instructions.
 
 - **Question and answer screen.** A single, centered input field with a few
   clickable example questions to get started. While the agent works, its

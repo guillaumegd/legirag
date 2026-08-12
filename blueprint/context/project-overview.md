@@ -159,8 +159,10 @@ built; first in line to cut if time runs short.
 
 ## Tech stack
 
-- **Front end** - Next.js + DSFR (French government design system), answer
-  streamed as produced
+- **Front end** - Next.js, DSFR-inspired UI (accessibility rigor and
+  institutional component conventions, not the DSFR's reserved visual
+  identity - legirag isn't an official `.gouv.fr` service), answer streamed
+  as produced
 - **API** - NestJS: input validation, rejects any unsourced claim, rate
   limiting, per-request cost cap
 - **Agent** - LangGraph.js state graph (routing, search, drafting,
@@ -190,8 +192,10 @@ could be explored later if usage justifies it, but none are committed to now.
 
 ## UI/UX
 
-Understated and institutional, built on DSFR, meant to be usable without
-instructions. No route paths are named yet in the plans.
+Understated and institutional, DSFR-inspired without reusing the DSFR's
+reserved visual identity (Marianne blue, Marianne typeface, state branding are
+`.gouv.fr`-only), meant to be usable without instructions. No route paths are
+named yet in the plans.
 
 - **Question and answer screen** - single centered input with example
   questions; agent activity shown in plain language while working (searching,

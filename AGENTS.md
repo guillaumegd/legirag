@@ -107,7 +107,7 @@ checks do not make the Blueprint unusable.
 ## Commands
 
 TypeScript monorepo (pnpm workspaces: `packages/*`). No dev server yet - `web`
-(Next.js + DSFR, planned) and `api` (NestJS, planned) are still stubs.
+(Next.js, DSFR-inspired UI, planned) and `api` (NestJS, planned) are still stubs.
 
 - Build: `pnpm build`
 - Lint: `pnpm lint`

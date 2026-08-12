@@ -16,5 +16,5 @@ This project uses the [AI Coding Blueprint](blueprint/README.md) workflow.
 - Typecheck: `pnpm typecheck`
 - Test: `pnpm test`
 
-No dev server yet — the `web` package (Next.js + DSFR) and `api` package (NestJS)
+No dev server yet — the `web` package (Next.js, DSFR-inspired UI) and `api` package (NestJS)
 are still stubs, scheduled later in the roadmap (see `3-FEUILLE-DE-ROUTE.md`).

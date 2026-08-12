@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/ingest" },
+    { "path": "packages/retrieval" },
+    { "path": "packages/agent" },
+    { "path": "packages/mcp" },
+    { "path": "packages/api" },
+    { "path": "packages/web" }
+  ]
+}

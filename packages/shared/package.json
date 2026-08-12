@@ -1,0 +1,25 @@
+{
+  "name": "@legirag/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "smoke": "tsx src/providers/bedrock-smoke.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^2.0.0",
+    "ai": "^4.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

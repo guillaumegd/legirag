@@ -1,0 +1,58 @@
+/* Theme variables - the durable output of /prototype.
+   DSFR-inspired, not DSFR: institutional conventions (generous whitespace,
+   minimal chrome, near-zero radius, accessible contrast, no drop shadows)
+   without the DSFR's reserved visual identity (Marianne blue, Marianne
+   typeface, state branding) - legirag is not an official .gouv.fr service.
+   Port this block into the real app's globals.css @theme when building the
+   first UI feature. */
+
+:root {
+  /* surfaces */
+  --bg: #ffffff;
+  --bg-alt: #f6f6f9;       /* section backgrounds, timeline track, code blocks */
+  --surface: #ffffff;      /* cards, panels, inputs */
+  --border: #dcdce1;
+  --border-strong: #b8b8c0;
+
+  /* text */
+  --text: #1b1b1f;         /* primary */
+  --muted: #5b5b63;        /* secondary, labels */
+  --faint: #8d8d95;        /* hints, timestamps */
+
+  /* accent - deep slate navy, deliberately distinct from Marianne blue #000091 */
+  --accent: #22335c;
+  --accent-hover: #182446;
+  --accent-ink: #ffffff;   /* text on accent */
+  --accent-soft: #e7eaf3;  /* accent-tinted backgrounds (chips, active states) */
+
+  /* semantic - legal state and system feedback */
+  --success: #1a7a4c;      /* etat: VIGUEUR */
+  --success-soft: #e6f2ea;
+  --warning: #a86400;      /* etat: MODIFIE */
+  --warning-soft: #faf0e0;
+  --danger: #b3261e;       /* etat: ABROGE */
+  --danger-soft: #fbe9e8;
+  --future: var(--faint);  /* not yet in force */
+
+  /* reference graph - internal vs. cross-code must read differently at a glance */
+  --ref-internal: var(--accent);
+  --ref-internal-soft: var(--accent-soft);
+  --ref-cross-code: #6b4fa0;
+  --ref-cross-code-soft: #efe9f7;
+
+  /* agent trace */
+  --trace-ok: var(--success);
+  --trace-fail: var(--danger);
+  --trace-line: var(--border);
+
+  /* type */
+  --font-sans:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:
+    ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
+
+  /* scale */
+  --radius: 4px;
+  --radius-sm: 2px;
+  --shadow: none; /* flat, border-defined surfaces - no drop shadows */
+}

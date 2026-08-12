@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>legirag — Frise temporelle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="theme.css" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  a { color: var(--accent); }
+  .skip-link {
+    position: absolute; left: -9999px; top: 0;
+    background: var(--accent); color: var(--accent-ink);
+    padding: 0.6rem 1rem; z-index: 10;
+  }
+  .skip-link:focus { left: 0.5rem; top: 0.5rem; }
+
+  .site-header { border-bottom: 1px solid var(--border); background: var(--bg); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: baseline; gap: 0.5rem; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.15rem; }
+  .brand-mark { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--accent); color: var(--accent-ink); border-radius: var(--radius-sm); font-size: 0.95rem; }
+  .brand-tagline { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
+  .proto-nav { display: flex; gap: 1.25rem; font-size: 0.9rem; }
+  .proto-nav a { color: var(--muted); text-decoration: none; }
+  .proto-nav a[aria-current="page"] { color: var(--accent); font-weight: 600; }
+  .proto-nav a:hover { color: var(--accent); }
+
+  main { padding: 2.5rem 0 5rem; }
+
+  .context-line {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+  .context-line strong { color: var(--text); }
+  h1 {
+    font-size: 1.3rem;
+    margin: 0 0 1.75rem;
+  }
+
+  .timeline-panel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.5rem 1.75rem;
+    margin-bottom: 2rem;
+    background: var(--bg-alt);
+  }
+  .timeline-date {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.9rem;
+  }
+  .timeline-date .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .timeline-date .value { font-size: 1.35rem; font-weight: 700; }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 1.5rem;
+  }
+  .timeline-marks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--faint);
+    padding: 0 0.1rem;
+  }
+
+  .version-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.85rem; }
+  .version-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    align-items: flex-start;
+    transition: opacity 120ms ease, border-color 120ms ease;
+  }
+  .version-card .state-dot {
+    flex-shrink: 0;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-top: 0.4rem;
+  }
+  .version-card .title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
+  .version-card .code-name { font-weight: 400; color: var(--muted); }
+  .version-card blockquote { margin: 0.4rem 0; font-size: 0.88rem; }
+  .version-card .meta { font-size: 0.8rem; color: var(--muted); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 600;
+  }
+  .badge-success { background: var(--success-soft); color: var(--success); }
+  .badge-danger { background: var(--danger-soft); color: var(--danger); }
+  .badge-future { background: var(--bg-alt); color: var(--faint); border: 1px dashed var(--border-strong); }
+
+  /* state: active */
+  .version-card[data-state="active"] { border-left: 3px solid var(--success); }
+  .version-card[data-state="active"] .state-dot { background: var(--success); }
+
+  /* state: repealed */
+  .version-card[data-state="repealed"] { border-left: 3px solid var(--danger); opacity: 0.75; }
+  .version-card[data-state="repealed"] .state-dot { background: var(--danger); }
+  .version-card[data-state="repealed"] blockquote,
+  .version-card[data-state="repealed"] .title { text-decoration: line-through; text-decoration-color: var(--danger); }
+
+  /* state: future */
+  .version-card[data-state="future"] { border-left: 3px solid var(--border-strong); opacity: 0.55; }
+  .version-card[data-state="future"] .state-dot { background: var(--faint); }
+
+  .note {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 1.75rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg-alt);
+    border-radius: var(--radius);
+  }
+</style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Aller au contenu</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="question-answer.html">
+        <span class="brand-mark">§</span>
+        legirag <span class="brand-tagline">— Le déplieur</span>
+      </a>
+      <nav class="proto-nav" aria-label="Navigation des maquettes">
+        <a href="question-answer.html">Question / Réponse</a>
+        <a href="time-travel.html" aria-current="page">Frise temporelle</a>
+        <a href="agent-trace.html">Trace de l'agent</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <div class="context-line">Frise temporelle pour <strong>« Est-ce que je peux rouler à 140 sur l'autoroute ? »</strong></div>
+    <h1>Article R413-17 — Code de la route, dans le temps</h1>
+
+    <div class="timeline-panel">
+      <div class="timeline-date">
+        <span class="label">Date sélectionnée</span>
+        <span class="value" id="date-value">30 juin 2011</span>
+      </div>
+      <input type="range" min="0" max="2" step="1" value="1" id="cursor"
+        aria-label="Curseur de date" aria-describedby="date-value" />
+      <div class="timeline-marks">
+        <span>1er janvier 2005</span>
+        <span>30 juin 2011</span>
+        <span>1er janvier 2027</span>
+      </div>
+    </div>
+
+    <ul class="version-list">
+      <li class="version-card" data-states="active,repealed,repealed" data-state="repealed">
+        <span class="state-dot"></span>
+        <div>
+          <div class="title">Article R413-17 <span class="code-name">— version 1993–2011</span></div>
+          <blockquote>« Cette vitesse est ramenée à cent quinze kilomètres à l'heure lorsque la chaussée est mouillée. »</blockquote>
+          <div class="meta">
+            <span class="badge badge-danger">abrogé le 30/06/2011</span>
+            en vigueur du 01/05/1993 au 29/06/2011
+          </div>
+        </div>
+      </li>
+      <li class="version-card" data-states="future,active,active" data-state="active">
+        <span class="state-dot"></span>
+        <div>
+          <div class="title">Article R413-17 <span class="code-name">— version en vigueur</span></div>
+          <blockquote>« Cette vitesse est ramenée à cent dix kilomètres à l'heure lorsque la chaussée est mouillée. »</blockquote>
+          <div class="meta">
+            <span class="badge badge-success">en vigueur</span>
+            en vigueur depuis le 30/06/2011
+          </div>
+        </div>
+      </li>
+      <li class="version-card" data-states="future,future,active" data-state="future">
+        <span class="state-dot"></span>
+        <div>
+          <div class="title">Article R413-17-1 <span class="code-name">— pas encore en vigueur</span></div>
+          <blockquote>« Un seuil spécifique est fixé pour les véhicules bénéficiant d'une délégation de conduite au sens de l'article L3151-1. »</blockquote>
+          <div class="meta">
+            <span class="badge badge-future">entrée en vigueur le 01/01/2027</span>
+            publié, non applicable à la date sélectionnée
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <p class="note">La frise n'est disponible que pour les textes dont l'historique complet est indexé. Les autres articles ne montrent que leur version actuelle.</p>
+  </main>
+
+  <script>
+    var dates = ["1er janvier 2005", "30 juin 2011", "1er janvier 2027"];
+    var cursor = document.getElementById("cursor");
+    var dateValue = document.getElementById("date-value");
+    var cards = document.querySelectorAll(".version-card");
+
+    function render() {
+      var idx = Number(cursor.value);
+      dateValue.textContent = dates[idx];
+      cards.forEach(function (card) {
+        var states = card.getAttribute("data-states").split(",");
+        card.setAttribute("data-state", states[idx]);
+      });
+    }
+    cursor.addEventListener("input", render);
+    render();
+  </script>
+</body>
+</html>

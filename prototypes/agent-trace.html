@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>legirag — Trace de l'agent</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="theme.css" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  a { color: var(--accent); }
+  .skip-link {
+    position: absolute; left: -9999px; top: 0;
+    background: var(--accent); color: var(--accent-ink);
+    padding: 0.6rem 1rem; z-index: 10;
+  }
+  .skip-link:focus { left: 0.5rem; top: 0.5rem; }
+
+  .site-header { border-bottom: 1px solid var(--border); background: var(--bg); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: baseline; gap: 0.5rem; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.15rem; }
+  .brand-mark { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--accent); color: var(--accent-ink); border-radius: var(--radius-sm); font-size: 0.95rem; }
+  .brand-tagline { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
+  .proto-nav { display: flex; gap: 1.25rem; font-size: 0.9rem; }
+  .proto-nav a { color: var(--muted); text-decoration: none; }
+  .proto-nav a[aria-current="page"] { color: var(--accent); font-weight: 600; }
+  .proto-nav a:hover { color: var(--accent); }
+
+  main { padding: 2.5rem 0 5rem; }
+
+  .context-line { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.35rem; }
+  .context-line strong { color: var(--text); }
+  .context-line code { font-family: var(--font-mono); font-size: 0.8rem; }
+  h1 { font-size: 1.3rem; margin: 0 0 0.5rem; }
+
+  .totals {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .totals strong { color: var(--text); }
+
+  .plan-box {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-alt);
+    padding: 1rem 1.15rem;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+  }
+  .plan-box h2 {
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+
+  .trace {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+  .trace::before {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: var(--trace-line);
+  }
+  .step {
+    position: relative;
+    padding: 0 0 1.4rem 2.6rem;
+  }
+  .step:last-child { padding-bottom: 0; }
+  .step-dot {
+    position: absolute;
+    left: 5px;
+    top: 4px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--trace-ok);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step.fail .step-dot { border-color: var(--trace-fail); }
+  .step.retry .step-dot { border-color: var(--warning); }
+  .step-dot::after {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--trace-ok);
+  }
+  .step.fail .step-dot::after { background: var(--trace-fail); }
+  .step.retry .step-dot::after { background: var(--warning); }
+
+  .step-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .step-name {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .step-duration { font-size: 0.8rem; color: var(--faint); white-space: nowrap; }
+  .step-args {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+  .step-result {
+    font-size: 0.86rem;
+    margin-top: 0.35rem;
+  }
+  .step.fail .step-result { color: var(--danger); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.1rem 0.5rem; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .badge-ok { background: var(--success-soft); color: var(--success); }
+  .badge-fail { background: var(--danger-soft); color: var(--danger); }
+  .badge-retry { background: var(--warning-soft); color: var(--warning); }
+
+  .decision-box, .stop-box {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.15rem;
+    margin-top: 2rem;
+    font-size: 0.88rem;
+  }
+  .decision-box h2, .stop-box h2 {
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .stop-box { border-left: 3px solid var(--accent); background: var(--accent-soft); }
+</style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Aller au contenu</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="question-answer.html">
+        <span class="brand-mark">§</span>
+        legirag <span class="brand-tagline">— Le déplieur</span>
+      </a>
+      <nav class="proto-nav" aria-label="Navigation des maquettes">
+        <a href="question-answer.html">Question / Réponse</a>
+        <a href="time-travel.html">Frise temporelle</a>
+        <a href="agent-trace.html" aria-current="page">Trace de l'agent</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <div class="context-line">Trace <code>trc_8f2a1c94</code> pour <strong>« Est-ce que je peux rouler à 140 sur l'autoroute ? »</strong></div>
+    <h1>Trace de l'agent</h1>
+
+    <div class="totals">
+      <span>Durée totale&nbsp;: <strong>6,4&nbsp;s</strong></span>
+      <span>Appels modèle&nbsp;: <strong>4</strong></span>
+      <span>Appels outils&nbsp;: <strong>6</strong> (1 nouvelle tentative)</span>
+      <span>Coût&nbsp;: <strong>0,014&nbsp;€</strong></span>
+    </div>
+
+    <div class="plan-box">
+      <h2>Plan initial</h2>
+      Identifier le ou les codes concernés par la question, localiser l'article fixant la vitesse maximale sur autoroute, vérifier son état et sa date d'application, suivre les renvois nécessaires à une réponse complète, puis vérifier chaque citation avant de répondre.
+    </div>
+
+    <ol class="trace">
+      <li class="step">
+        <span class="step-dot"></span>
+        <div class="step-head">
+          <span class="step-name">router_code(question)</span>
+          <span class="step-duration">180 ms</span>
+        </div>
+        <div class="step-result"><span class="badge badge-ok">ok</span> → <code>["code-de-la-route"]</code>, confiance 0,96</div>
+      </li>
+
+      <li class="step">
+        <span class="step-dot"></span>
+        <div class="step-head">
+          <span class="step-name">search_articles(codes, "vitesse maximale autoroute")</span>
+          <span class="step-duration">640 ms</span>
+        </div>
+        <div class="step-result"><span class="badge badge-ok">ok</span> → 3 articles candidats (R413-17, R413-14, R413-8)</div>
+      </li>
+
+      <li class="step">
+        <span class="step-dot"></span>
+        <div class="step-head">
+          <span class="step-name">lire_article("LEGIARTI000024253440")</span>
+          <span class="step-duration">90 ms</span>
+        </div>
+        <div class="step-result"><span class="badge badge-ok">ok</span> → texte, état VIGUEUR, en vigueur depuis le 30/06/2011</div>
+      </li>
+
+      <li class="step fail">
+        <span class="step-dot"></span>
+        <div class="step-head">
+          <span class="step-name">resoudre_renvoi(R413-17 → "contraventions encourues")</span>
+          <span class="step-duration">5,01 s</span>
+        </div>
+        <div class="step-result"><span class="badge badge-fail">échec</span> délai dépassé côté source Légifrance</div>
+      </li>
+
+      <li class="step retry">
+        <span class="step-dot"></span>
+        <div class="step-head">
+          <span class="step-name">resoudre_renvoi(R413-17 → "contraventions encourues")</span>
+          <span class="step-duration">310 ms</span>
+        </div>
+        <div class="step-result"><span class="badge badge-retry">nouvelle tentative</span> → résolu vers Article 131-13, Code pénal (inter-code)</div>
+      </li>
+
+      <li class="step">
+        <span class="step-dot"></span>
+        <div class="step-head">
+          <span class="step-name">verifier_citations([R413-17, R413-14, 131-13])</span>
+          <span class="step-duration">150 ms</span>
+        </div>
+        <div class="step-result"><span class="badge badge-ok">ok</span> → 3/3 citations valides, aucune abrogée</div>
+      </li>
+    </ol>
+
+    <div class="decision-box">
+      <h2>Décision de routage</h2>
+      Un seul code identifié avec une confiance suffisante (Code de la route) — pas de recherche multi-code déclenchée.
+    </div>
+
+    <div class="stop-box">
+      <h2>Critère d'arrêt atteint</h2>
+      Toutes les citations retenues sont vérifiées et aucun renvoi non résolu ne subsiste → fin de la boucle, réponse renvoyée avec <strong>confiance élevée</strong>.
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>legirag — Question / Réponse</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="theme.css" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  a { color: var(--accent); }
+  .skip-link {
+    position: absolute; left: -9999px; top: 0;
+    background: var(--accent); color: var(--accent-ink);
+    padding: 0.6rem 1rem; z-index: 10;
+  }
+  .skip-link:focus { left: 0.5rem; top: 0.5rem; }
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .site-header .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+  .brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+  }
+  .brand-tagline {
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 0.9rem;
+  }
+  .proto-nav {
+    display: flex;
+    gap: 1.25rem;
+    font-size: 0.9rem;
+  }
+  .proto-nav a { color: var(--muted); text-decoration: none; }
+  .proto-nav a[aria-current="page"] { color: var(--accent); font-weight: 600; }
+  .proto-nav a:hover { color: var(--accent); }
+
+  main { padding: 2.5rem 0 5rem; }
+
+  .ask-form {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+  .ask-input {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    font-family: inherit;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    background: var(--surface);
+  }
+  .ask-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ask-submit {
+    padding: 0.85rem 1.4rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    font-weight: 600;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .ask-submit:hover { background: var(--accent-hover); }
+  .ask-reset {
+    text-align: right;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  .activity {
+    list-style: none;
+    margin: 0 0 2.25rem;
+    padding: 0.9rem 1rem;
+    background: var(--bg-alt);
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+  }
+  .activity li { display: flex; align-items: center; gap: 0.4rem; }
+  .activity .ok { color: var(--success); font-weight: 700; }
+
+  .answer-block {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .answer-block h2 {
+    margin: 0;
+    padding: 0.9rem 1.25rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    background: var(--bg-alt);
+    border-bottom: 1px solid var(--border);
+  }
+  .answer-body { padding: 1.25rem; }
+
+  .verdict {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+  }
+
+  .citation {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-alt);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--accent);
+  }
+  .citation blockquote {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+  .citation-meta {
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    align-items: center;
+  }
+  .citation-meta a { color: var(--accent); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-success { background: var(--success-soft); color: var(--success); }
+  .badge-warning { background: var(--warning-soft); color: var(--warning); }
+  .badge-danger { background: var(--danger-soft); color: var(--danger); }
+  .badge-confidence { background: var(--accent-soft); color: var(--accent); }
+
+  .ref-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+  .ref-item {
+    display: flex;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .ref-tag {
+    flex-shrink: 0;
+    align-self: flex-start;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .ref-tag.internal { background: var(--ref-internal-soft); color: var(--ref-internal); }
+  .ref-tag.cross { background: var(--ref-cross-code-soft); color: var(--ref-cross-code); }
+  .ref-item-body { flex: 1; }
+  .ref-item-title { font-weight: 600; font-size: 0.92rem; margin-bottom: 0.15rem; }
+  .ref-item-title .code-name { font-weight: 400; color: var(--muted); }
+  .ref-motif {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+  }
+  .ref-motif strong { color: var(--text); font-weight: 600; }
+  .ref-text { font-size: 0.88rem; margin: 0.4rem 0 0; }
+
+  .scope-panel {
+    border: 1px solid var(--warning);
+    background: var(--warning-soft);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .scope-panel h2 {
+    margin: 0 0 0.6rem;
+    font-size: 0.85rem;
+    color: var(--warning);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .scope-panel ul { margin: 0; padding-left: 1.2rem; font-size: 0.88rem; }
+  .scope-panel li { margin-bottom: 0.3rem; }
+
+  .footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .footer-bar a { color: var(--muted); text-decoration: underline; }
+  .footer-bar code { font-family: var(--font-mono); font-size: 0.78rem; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 2rem; }
+  .chip {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: var(--surface);
+  }
+</style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Aller au contenu</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="question-answer.html">
+        <span class="brand-mark">§</span>
+        legirag <span class="brand-tagline">— Le déplieur</span>
+      </a>
+      <nav class="proto-nav" aria-label="Navigation des maquettes">
+        <a href="question-answer.html" aria-current="page">Question / Réponse</a>
+        <a href="time-travel.html">Frise temporelle</a>
+        <a href="agent-trace.html">Trace de l'agent</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <form class="ask-form" onsubmit="return false;">
+      <label class="visually-hidden" for="q">Posez votre question juridique</label>
+      <input id="q" class="ask-input" type="text"
+        value="Est-ce que je peux rouler à 140 sur l'autoroute ?" />
+      <button class="ask-submit" type="submit">Demander</button>
+    </form>
+    <div class="ask-reset"><a href="#">Nouvelle question</a></div>
+
+    <ul class="activity" aria-label="Étapes suivies par l'agent">
+      <li><span class="ok">✓</span> Routé vers le Code de la route</li>
+      <li><span class="ok">✓</span> 3 articles lus</li>
+      <li><span class="ok">✓</span> 1 renvoi suivi vers le Code pénal</li>
+      <li><span class="ok">✓</span> Citations vérifiées</li>
+    </ul>
+
+    <section class="answer-block">
+      <h2>Règle principale</h2>
+      <div class="answer-body">
+        <p class="verdict">Non : sur autoroute, la vitesse maximale autorisée est de 130&nbsp;km/h par temps sec (110&nbsp;km/h en cas de pluie ou de visibilité insuffisante). Rouler à 140&nbsp;km/h constitue un dépassement sanctionné.</p>
+        <div class="citation">
+          <div>
+            <blockquote>« Sur les autoroutes, la vitesse des véhicules est limitée à cent trente kilomètres à l'heure. Cette vitesse est ramenée à cent dix kilomètres à l'heure lorsque la chaussée est mouillée. »</blockquote>
+            <div class="citation-meta">
+              <strong>Article R413-17</strong>
+              <span class="code-name">Code de la route, I</span>
+              <span class="badge badge-success">en vigueur</span>
+              <span>depuis le 30/06/2011</span>
+              <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000024253440" target="_blank" rel="noopener">Voir sur Légifrance ↗</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="answer-block">
+      <h2>Textes complémentaires (2)</h2>
+      <div class="answer-body">
+        <ul class="ref-list">
+          <li class="ref-item">
+            <span class="ref-tag internal">Même code</span>
+            <div class="ref-item-body">
+              <div class="ref-item-title">Article R413-14 <span class="code-name">— Code de la route</span></div>
+              <p class="ref-text">Précise le régime des dépassements de plus de 30&nbsp;km/h et de plus de 40&nbsp;km/h par rapport à la vitesse maximale autorisée.</p>
+              <div class="ref-motif"><strong>Pourquoi ce texte&nbsp;:</strong> cas particulier — s'applique si le dépassement constaté dépasse certains seuils.</div>
+            </div>
+          </li>
+          <li class="ref-item">
+            <span class="ref-tag cross">Autre code</span>
+            <div class="ref-item-body">
+              <div class="ref-item-title">Article 131-13 <span class="code-name">— Code pénal</span></div>
+              <p class="ref-text">Définit les classes de contraventions et les montants d'amende encourus selon la classe applicable.</p>
+              <div class="ref-motif"><strong>Pourquoi ce texte&nbsp;:</strong> renvoi explicite — l'article R413-17 renvoie au régime des contraventions pour la sanction encourue.</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="scope-panel" aria-label="Ce que cette réponse ne couvre pas">
+      <h2>⚠ Hors périmètre de cette réponse</h2>
+      <ul>
+        <li>Les arrêtés préfectoraux ou municipaux abaissant la limitation sur un tronçon donné</li>
+        <li>Les limitations spécifiques aux poids lourds, véhicules de transport en commun, ou conducteurs novices</li>
+        <li>La jurisprudence relative à la contestation d'un procès-verbal</li>
+      </ul>
+    </section>
+
+    <div class="footer-bar">
+      <span><span class="badge badge-confidence">Confiance élevée</span> · référence au 13/08/2026</span>
+      <span>Trace <code>trc_8f2a1c94</code> · <a href="agent-trace.html">voir la trace</a> · <a href="time-travel.html">voir dans le temps</a></span>
+    </div>
+  </main>
+</body>
+</html>

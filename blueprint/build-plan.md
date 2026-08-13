@@ -13,7 +13,7 @@ Zod schemas, `Retriever`/`ModelProvider` interfaces, the Légifrance URL
 builder, and a Bedrock provider; `infra/` with a Terraform skeleton). Item 1
 below closes out what's left of that foundation before data work starts.
 
-- [ ] 1. **Repo foundations and shared contracts** - finish the shared package
+- [x] 1. **Repo foundations and shared contracts** - finish the shared package
   (`ReponseStructuree` response schema, `Citation`, article/subdivision/chunk
   types), confirm the Bedrock model wiring reads from environment variables,
   add `.env.example` and secret handling, and get base CI (lint, typecheck,

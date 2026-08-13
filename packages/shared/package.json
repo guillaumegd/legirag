@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",
-    "smoke": "tsx src/providers/bedrock-smoke.ts"
+    "smoke": "tsx --env-file=../../.env src/providers/bedrock-smoke.ts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^2.0.0",

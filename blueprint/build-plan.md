@@ -22,6 +22,20 @@ below closes out what's left of that foundation before data work starts.
   France's codes in force, parse each article's hierarchical path (part,
   book, title, chapter, section) and its subdivisions, and load everything
   into Postgres with the schema queryable by article number
+  - [x] 2a. **COLD corpus acquisition and filtering** - fetch the COLD French
+    Law dataset, keep only rows that are actual codes, drop the unused
+    English columns, and persist the filtered result as a reusable
+    intermediate artifact
+  - [ ] 2b. **Hierarchical path parser** - parse each article's `texte_contexte`
+    field into its part/book/title/chapter/section segments, unit tested
+    against the header combinations the source data actually contains
+  - [ ] 2c. **Subdivision extractor** - parse each article's markdown content
+    into its `I`/`II`/`1°`/`2°`/alinéa subdivisions, unit tested against
+    articles with and without subdivisions
+  - [ ] 2d. **Supabase schema and load** - create the `articles` and
+    `subdivisions` tables with their indexes, then load the parsed corpus so
+    a query for any `article_num` returns its text, code, hierarchical path,
+    and subdivisions
 - [ ] 3. **Cross-reference graph** - extract references from one article to
   another (simple references, enumerations, ranges, references that cross
   into a different code) with the extraction accuracy measured against a

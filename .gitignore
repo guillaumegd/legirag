@@ -18,3 +18,5 @@ coverage/
 *.log
 
 docs/private/
+
+packages/ingest/.data/

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b",
     "smoke": "tsx --env-file=../../.env src/providers/bedrock-smoke.ts"
   },
   "dependencies": {

@@ -18,7 +18,7 @@ below closes out what's left of that foundation before data work starts.
   types), confirm the Bedrock model wiring reads from environment variables,
   add `.env.example` and secret handling, and get base CI (lint, typecheck,
   test) green on every change
-- [ ] 2. **Legal corpus in the database** - ingest the open-data source of
+- [x] 2. **Legal corpus in the database** - ingest the open-data source of
   France's codes in force, parse each article's hierarchical path (part,
   book, title, chapter, section) and its subdivisions, and load everything
   into Postgres with the schema queryable by article number
@@ -32,7 +32,7 @@ below closes out what's left of that foundation before data work starts.
   - [x] 2c. **Subdivision extractor** - parse each article's markdown content
     into its `I`/`II`/`1°`/`2°`/alinéa subdivisions, unit tested against
     articles with and without subdivisions
-  - [ ] 2d. **Supabase schema and load** - create the `articles` and
+  - [x] 2d. **Supabase schema and load** - create the `articles` and
     `subdivisions` tables with their indexes, then load the parsed corpus so
     a query for any `article_num` returns its text, code, hierarchical path,
     and subdivisions

@@ -11,14 +11,18 @@
     "inspect:cold": "tsx src/cold/inspect-cold.ts",
     "fetch:cold": "tsx src/cold/fetch-cold.ts",
     "validate:section-paths": "tsx src/cold/validate-section-paths.ts",
-    "validate:subdivisions": "tsx src/cold/validate-subdivisions.ts"
+    "validate:subdivisions": "tsx src/cold/validate-subdivisions.ts",
+    "load:corpus": "tsx --env-file=../../.env src/cold/load-corpus.ts",
+    "validate:load": "tsx --env-file=../../.env src/cold/validate-load.ts"
   },
   "dependencies": {
     "@legirag/shared": "workspace:*",
     "hyparquet": "^1.28.1",
+    "pg": "^8.23.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/pg": "^8.21.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }

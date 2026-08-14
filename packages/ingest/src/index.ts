@@ -2,3 +2,4 @@
 export * from './cold/types.js';
 export * from './cold/section-path.js';
 export * from './cold/subdivisions.js';
+export * from './cold/to-article.js';

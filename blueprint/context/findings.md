@@ -24,33 +24,18 @@ and point at the Bedrock model card's "Programmatic Access" table as the
 source of truth per model rather than a fixed pattern.
 **Resolution:**
 
-### F-07 [P3] fixed - ensureShardsDownloaded can cache a truncated shard as if it were complete
+### F-12 [P3] open - Em dashes remain outside `packages/ingest` (agent, api, retrieval, shared, mcp, web)
 
-**File:** packages/ingest/src/cold/hf-source.ts:60-79
-**Found:** 2026-08-13 by /audit (scope: current)
-**Why it matters:** Same failure class as F-02, one file over, not caught in
-the first pass. `writeFile(dest, buffer)` (line 73) is not atomic - if the
-process is interrupted while it's writing (kill, OOM, container preemption,
-machine sleep) partway through a ~200MB shard, a truncated file can be left
-at `dest` with nonzero size. The cache check on the next run
-(`cached.size > 0`, line 67) only tests for *presence*, not completeness, so
-that truncated shard would be treated as already-cached and reused rather
-than re-downloaded. The failure is loud when it happens - `parquetMetadataAsync`
-throws `parquet file invalid (footer != PAR1)`, reproduced for real while
-verifying F-02's fix by truncating a shard on purpose - but the error message
-doesn't point at the cache or say what to delete, so whoever hits it (a future
-session, possibly without this conversation's context) has to work that out
-from a bare hyparquet parse error. Narrower window than F-02 (a single
-buffered write vs. a multi-minute incremental stream) and self-recovering
-once diagnosed, hence P3 rather than P1.
-**Suggested fix:** Same pattern as F-02: write each shard to a `.tmp` path and
-rename on success, or write to `dest` and then verify (e.g. re-stat, or a
-cheap `parquetMetadataAsync` sanity check) before trusting a cached file.
-**Resolution:** Each shard now writes to `<dest>.tmp` and renames to `dest`
-only on success; on error the `.tmp` is removed and the error rethrown -
-same pattern as F-02. Verified for real: deleted a cached shard and reran
-`inspect:cold`, which re-downloaded it correctly (fresh timestamp, correct
-size, no `.tmp` left, diagnostics unchanged). Verified the failure path with
-an isolated repro of the same write/rename/catch/rm sequence forcing the
-rename to fail - confirms neither `.tmp` nor a corrupted `dest` is left
-behind.
+**File:** packages/shared/src/{schema,legifrance,types,interfaces}.ts,
+packages/shared/src/providers/{bedrock,bedrock-smoke}.ts,
+packages/agent/src/index.ts, packages/api/src/index.ts,
+packages/retrieval/src/index.ts, packages/mcp/src/index.ts,
+packages/web/src/index.ts
+**Found:** 2026-08-14 by /audit (scope: current) - carved out of 02b/F-11
+rather than fixed there, since these files are unrelated to feature 2b's
+branch (mostly feature 1's stub/foundation code).
+**Why it matters:** Same `coding-standards.md` "no em-dash" rule as 02b/F-11,
+just outside that branch's legitimate diff surface.
+**Suggested fix:** Fix in a `full`-scope `/audit` pass, or a small dedicated
+`/fix`, on a branch that legitimately touches those packages.
+**Resolution:**

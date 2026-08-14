@@ -1,8 +1,8 @@
 import { createWriteStream, type WriteStream } from 'node:fs';
 import { mkdir, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet';
+import { coldCorpusPath, rawDataDir } from './data-paths.js';
 import { filterColdRows } from './filter.js';
 import { ensureShardsDownloaded } from './hf-source.js';
 import { ColdArticleRow } from './types.js';
@@ -12,9 +12,7 @@ import { ColdArticleRow } from './types.js';
 // français utile et seraient sinon décodés pour rien sur chaque fragment.
 const COLD_COLUMNS = Object.keys(ColdArticleRow.shape);
 
-const packageRoot = path.join(fileURLToPath(new URL('.', import.meta.url)), '..', '..');
-const rawDir = path.join(packageRoot, '.data', 'raw');
-const outputPath = path.join(packageRoot, '.data', 'cold-corpus.ndjson');
+const outputPath = coldCorpusPath;
 // Écrit d'abord dans un fichier temporaire : un échec en cours de route (déjà
 // arrivé en conditions réelles) ne doit jamais laisser un cold-corpus.ndjson
 // tronqué mais indiscernable d'un corpus complet plus petit.
@@ -37,7 +35,7 @@ function closeStream(stream: WriteStream): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const shardPaths = await ensureShardsDownloaded(rawDir);
+  const shardPaths = await ensureShardsDownloaded(rawDataDir);
   await mkdir(path.dirname(outputPath), { recursive: true });
 
   const out = createWriteStream(tmpOutputPath, { encoding: 'utf8' });

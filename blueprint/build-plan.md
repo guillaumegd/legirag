@@ -26,7 +26,7 @@ below closes out what's left of that foundation before data work starts.
     Law dataset, keep only rows that are actual codes, drop the unused
     English columns, and persist the filtered result as a reusable
     intermediate artifact
-  - [ ] 2b. **Hierarchical path parser** - parse each article's `texte_contexte`
+  - [x] 2b. **Hierarchical path parser** - parse each article's `texte_contexte`
     field into its part/book/title/chapter/section segments, unit tested
     against the header combinations the source data actually contains
   - [ ] 2c. **Subdivision extractor** - parse each article's markdown content

@@ -1,12 +1,6 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { asyncBufferFromFile, parquetMetadataAsync, parquetReadObjects } from 'hyparquet';
+import { rawDataDir } from './data-paths.js';
 import { ensureShardsDownloaded } from './hf-source.js';
-
-// Sortie diagnostique de la feuille de route J2 / 2.1 : compter avant de
-// parser quoi que ce soit, plutôt que supposer la forme annoncée par le
-// cahier des charges technique.
-const dataDir = path.join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '.data', 'raw');
 
 function bump<K>(counts: Map<K, number>, key: K): void {
   counts.set(key, (counts.get(key) ?? 0) + 1);
@@ -17,14 +11,14 @@ function toObject(counts: Map<string, number>): Record<string, number> {
 }
 
 async function main(): Promise<void> {
-  const shardPaths = await ensureShardsDownloaded(dataDir);
+  const shardPaths = await ensureShardsDownloaded(rawDataDir);
 
   const natureCounts = new Map<string, number>();
   const etatCounts = new Map<string, number>();
   const dateFinCounts = new Map<string, number>();
   const titres = new Set<string>();
   // texte_titre est le titre du texte contenant (arrêté, décret, loi, code…),
-  // pas réservé aux codes — le distinct global ne dit donc rien sur "combien
+  // pas réservé aux codes - le distinct global ne dit donc rien sur "combien
   // de codes". On isole en plus la même mesure sur les seules lignes CODE.
   const titresCode = new Set<string>();
   const etatCountsCode = new Map<string, number>();
@@ -71,7 +65,7 @@ async function main(): Promise<void> {
   console.log(
     seulementVigueur
       ? 'Confirmé : parmi les lignes CODE, article_etat ne porte bien que la valeur VIGUEUR.'
-      : `À NOTER : parmi les lignes CODE, article_etat porte ${etatCodeValues.length} valeur(s) distincte(s), pas seulement VIGUEUR — le cahier des charges technique § 3.3 est à corriger en conséquence.`,
+      : `À NOTER : parmi les lignes CODE, article_etat porte ${etatCodeValues.length} valeur(s) distincte(s), pas seulement VIGUEUR - le cahier des charges technique § 3.3 est à corriger en conséquence.`,
   );
 }
 

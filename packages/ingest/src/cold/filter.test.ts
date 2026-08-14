@@ -21,7 +21,7 @@ const ligneCodeValide = {
   texte_contexte: 'Partie réglementaire\nLIVRE IER : ...',
   article_contenu_markdown: "Le ministre chargé de l'énergie désigne par arrêté...",
   article_contenu_text: "Le ministre chargé de l'énergie désigne par arrêté...",
-  // colonnes réelles mais non retenues — doivent disparaître du résultat
+  // colonnes réelles mais non retenues - doivent disparaître du résultat
   'Unnamed: 0': 1,
   texte_titre_en: 'Energy Code',
 };
@@ -55,7 +55,7 @@ describe('filterColdRows', () => {
   });
 
   // Régression : parmi les lignes CODE, article_etat est null pour 16 lignes
-  // sur 157 174 (vérifié en direct, cf. types.ts) — pas seulement VIGUEUR.
+  // sur 157 174 (vérifié en direct, cf. types.ts) - pas seulement VIGUEUR.
   it('accepte une ligne CODE avec article_etat null', () => {
     const ligne = { ...ligneCodeValide, article_etat: null };
     const [resultat] = filterColdRows([ligne]);

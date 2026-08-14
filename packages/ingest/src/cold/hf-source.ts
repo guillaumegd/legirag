@@ -15,7 +15,7 @@ const ParquetFileList = z.object({
 });
 
 // Hugging Face limite les requêtes anonymes par fenêtre fixe (429, en-tête
-// `ratelimit: "resolvers";r=0;t=<secondes avant réinitialisation>`) —
+// `ratelimit: "resolvers";r=0;t=<secondes avant réinitialisation>`) -
 // constaté en conditions réelles en préparant cette étape. On respecte ce
 // délai plutôt que de deviner un backoff fixe.
 async function fetchWithRetry(url: string, maxAttempts = 5): Promise<Response> {
@@ -27,7 +27,7 @@ async function fetchWithRetry(url: string, maxAttempts = 5): Promise<Response> {
       const match = /t=(\d+)/.exec(header);
       const waitSeconds = match ? Number(match[1]) + 2 : 30 * attempt;
       console.error(
-        `Limite de débit Hugging Face — attente ${waitSeconds}s (tentative ${attempt}/${maxAttempts})`,
+        `Limite de débit Hugging Face - attente ${waitSeconds}s (tentative ${attempt}/${maxAttempts})`,
       );
       await new Promise((resolve) => setTimeout(resolve, waitSeconds * 1000));
       continue;
@@ -72,7 +72,7 @@ export async function ensureShardsDownloaded(destDir: string): Promise<string[]>
       const buffer = Buffer.from(await res.arrayBuffer());
       // Écriture atomique : un fragment interrompu en cours d'écriture (kill,
       // OOM, mise en veille) ne doit jamais rester en cache comme s'il était
-      // complet — même défaut que sur cold-corpus.ndjson, ici sur le cache
+      // complet - même défaut que sur cold-corpus.ndjson, ici sur le cache
       // de téléchargement des fragments.
       const tmpDest = `${dest}.tmp`;
       try {

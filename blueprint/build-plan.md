@@ -29,7 +29,7 @@ below closes out what's left of that foundation before data work starts.
   - [x] 2b. **Hierarchical path parser** - parse each article's `texte_contexte`
     field into its part/book/title/chapter/section segments, unit tested
     against the header combinations the source data actually contains
-  - [ ] 2c. **Subdivision extractor** - parse each article's markdown content
+  - [x] 2c. **Subdivision extractor** - parse each article's markdown content
     into its `I`/`II`/`1°`/`2°`/alinéa subdivisions, unit tested against
     articles with and without subdivisions
   - [ ] 2d. **Supabase schema and load** - create the `articles` and

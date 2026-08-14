@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "inspect:cold": "tsx src/cold/inspect-cold.ts",
     "fetch:cold": "tsx src/cold/fetch-cold.ts",
-    "validate:section-paths": "tsx src/cold/validate-section-paths.ts"
+    "validate:section-paths": "tsx src/cold/validate-section-paths.ts",
+    "validate:subdivisions": "tsx src/cold/validate-subdivisions.ts"
   },
   "dependencies": {
     "@legirag/shared": "workspace:*",

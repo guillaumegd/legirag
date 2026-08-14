@@ -9,7 +9,7 @@ function requireEnv(name: string): string {
   return value;
 }
 
-// § 6 — le modèle passe par variable d'environnement, jamais en dur.
+// § 6 - le modèle passe par variable d'environnement, jamais en dur.
 // Coût zéro aujourd'hui, changement de modèle gratuit plus tard.
 export const bedrockProvider: ModelProvider = {
   volume: () => bedrock(requireEnv('MODEL_VOLUME')),

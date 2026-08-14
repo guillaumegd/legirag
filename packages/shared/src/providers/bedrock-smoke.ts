@@ -1,4 +1,4 @@
-// Test de fumée 1.5 — pas dans la suite vitest : nécessite de vrais identifiants AWS Bedrock.
+// Test de fumée 1.5 - pas dans la suite vitest : nécessite de vrais identifiants AWS Bedrock.
 // Lancer avec : pnpm --filter @legirag/shared smoke
 import { generateText } from 'ai';
 import { bedrockProvider } from './bedrock.js';

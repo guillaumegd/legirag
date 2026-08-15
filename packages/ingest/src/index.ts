@@ -7,3 +7,4 @@ export * from './cold/renvois.js';
 export * from './cold/renvois-sample.js';
 export * from './cold/renvois-accuracy.js';
 export * from './cold/resolve-renvoi.js';
+export * from './cold/chunking.js';

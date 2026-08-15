@@ -12,6 +12,7 @@
     "fetch:cold": "tsx src/cold/fetch-cold.ts",
     "validate:section-paths": "tsx src/cold/validate-section-paths.ts",
     "validate:subdivisions": "tsx src/cold/validate-subdivisions.ts",
+    "validate:chunking": "tsx src/cold/validate-chunking.ts",
     "validate:renvois-accuracy": "tsx src/cold/validate-renvois-accuracy.ts",
     "validate:renvois": "tsx src/cold/validate-renvois.ts",
     "load:corpus": "tsx --env-file=../../.env src/cold/load-corpus.ts",

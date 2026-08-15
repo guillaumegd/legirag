@@ -1,11 +1,9 @@
-import { createReadStream } from 'node:fs';
-import { createInterface } from 'node:readline';
 import type { Client } from 'pg';
-import { coldCorpusPath } from './data-paths.js';
+import { streamColdCorpus } from './corpus-stream.js';
 import { createDatabaseClient } from './pg-client.js';
+import { placeholders } from './sql-batch.js';
 import { extractSubdivisions } from './subdivisions.js';
-import { toArticle, type MappedArticle } from './to-article.js';
-import { ColdArticleRow } from './types.js';
+import type { MappedArticle } from './to-article.js';
 
 const BATCH_SIZE = 500;
 const LOG_EVERY = 10_000;
@@ -31,18 +29,6 @@ interface SubdivisionRow {
   label: string;
   ordre: number;
   contenu: string;
-}
-
-// Génère les $1, $2… d'un INSERT multi-lignes plutôt qu'une requête par ligne :
-// à 157k articles, l'aller-retour réseau par ligne dominerait le temps total.
-function placeholders(rowCount: number, columnCount: number): string {
-  const rows: string[] = [];
-  for (let r = 0; r < rowCount; r++) {
-    const cols: string[] = [];
-    for (let c = 0; c < columnCount; c++) cols.push(`$${r * columnCount + c + 1}`);
-    rows.push(`(${cols.join(', ')})`);
-  }
-  return rows.join(', ');
 }
 
 function articleToRow(article: MappedArticle): unknown[] {
@@ -131,12 +117,8 @@ async function main(): Promise<void> {
   let batchSubdivisions: SubdivisionRow[] = [];
 
   try {
-    const rl = createInterface({ input: createReadStream(coldCorpusPath, { encoding: 'utf8' }) });
-    for await (const line of rl) {
-      if (line.length === 0) continue;
+    for await (const { row, article } of streamColdCorpus()) {
       read++;
-      const row: ColdArticleRow = ColdArticleRow.parse(JSON.parse(line));
-      const article = toArticle(row);
 
       if (article === null) {
         skipped++;

@@ -15,7 +15,9 @@
     "validate:renvois-accuracy": "tsx src/cold/validate-renvois-accuracy.ts",
     "validate:renvois": "tsx src/cold/validate-renvois.ts",
     "load:corpus": "tsx --env-file=../../.env src/cold/load-corpus.ts",
-    "validate:load": "tsx --env-file=../../.env src/cold/validate-load.ts"
+    "validate:load": "tsx --env-file=../../.env src/cold/validate-load.ts",
+    "load:renvois": "tsx --env-file=../../.env src/cold/load-renvois.ts",
+    "validate:renvois-load": "tsx --env-file=../../.env src/cold/validate-renvois-load.ts"
   },
   "dependencies": {
     "@legirag/shared": "workspace:*",

@@ -36,7 +36,7 @@ below closes out what's left of that foundation before data work starts.
     `subdivisions` tables with their indexes, then load the parsed corpus so
     a query for any `article_num` returns its text, code, hierarchical path,
     and subdivisions
-- [ ] 3. **Cross-reference graph** - extract references from one article to
+- [x] 3. **Cross-reference graph** - extract references from one article to
   another (simple references, enumerations, ranges, references that cross
   into a different code) with the extraction accuracy measured against a
   hand-annotated sample, and populate the reference graph table
@@ -44,7 +44,7 @@ below closes out what's left of that foundation before data work starts.
     every reference form (simple, enumeration, range-expansion, cross-code,
     subdivision-target), with its accuracy measured against a hand-annotated
     sample of real articles
-  - [ ] 3b. **Renvois table and load** - create the `renvois` table, resolve
+  - [x] 3b. **Renvois table and load** - create the `renvois` table, resolve
     each extracted reference to its target `article_identifier` where
     possible, and load the full extracted graph into Supabase
 - [ ] 4. **Search index and access-control policies** - contextual chunking,

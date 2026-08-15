@@ -18,7 +18,10 @@
     "load:corpus": "tsx --env-file=../../.env src/cold/load-corpus.ts",
     "validate:load": "tsx --env-file=../../.env src/cold/validate-load.ts",
     "load:renvois": "tsx --env-file=../../.env src/cold/load-renvois.ts",
-    "validate:renvois-load": "tsx --env-file=../../.env src/cold/validate-renvois-load.ts"
+    "validate:renvois-load": "tsx --env-file=../../.env src/cold/validate-renvois-load.ts",
+    "prune:corpus": "tsx --env-file=../../.env src/cold/prune-corpus.ts",
+    "load:chunks": "tsx --env-file=../../.env src/cold/load-chunks.ts",
+    "validate:chunks-load": "tsx --env-file=../../.env src/cold/validate-chunks-load.ts"
   },
   "dependencies": {
     "@legirag/shared": "workspace:*",

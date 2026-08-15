@@ -57,7 +57,7 @@ below closes out what's left of that foundation before data work starts.
     article/subdivision number ahead of the content), one chunk per
     subdivision when they exist and one per article otherwise, unit tested
     and validated against the real corpus
-  - [ ] 4b. **Chunks table, embeddings, and indexes** - create the `chunks`
+  - [x] 4b. **Chunks table, embeddings, and indexes** - create the `chunks`
     table (`embedding vector(1024)`, generated `tsv`), generate and persist
     Cohere embed-v4 embeddings for every chunk in batches, and add the HNSW,
     GIN, and B-tree indexes

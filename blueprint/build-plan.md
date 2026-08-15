@@ -40,6 +40,13 @@ below closes out what's left of that foundation before data work starts.
   another (simple references, enumerations, ranges, references that cross
   into a different code) with the extraction accuracy measured against a
   hand-annotated sample, and populate the reference graph table
+  - [x] 3a. **Renvoi extractor** - pure text-in/structured-out extraction of
+    every reference form (simple, enumeration, range-expansion, cross-code,
+    subdivision-target), with its accuracy measured against a hand-annotated
+    sample of real articles
+  - [ ] 3b. **Renvois table and load** - create the `renvois` table, resolve
+    each extracted reference to its target `article_identifier` where
+    possible, and load the full extracted graph into Supabase
 - [ ] 4. **Search index and access-control policies** - contextual chunking,
   vector embeddings, keyword index, the hybrid `Retriever` implementation,
   and row-level security policies enforcing state/date/code/agreement-ID

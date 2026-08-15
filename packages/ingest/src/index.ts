@@ -3,3 +3,6 @@ export * from './cold/types.js';
 export * from './cold/section-path.js';
 export * from './cold/subdivisions.js';
 export * from './cold/to-article.js';
+export * from './cold/renvois.js';
+export * from './cold/renvois-sample.js';
+export * from './cold/renvois-accuracy.js';

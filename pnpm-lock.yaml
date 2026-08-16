@@ -59,6 +59,25 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
 
+  packages/eval:
+    dependencies:
+      '@legirag/retrieval':
+        specifier: workspace:*
+        version: link:../retrieval
+      '@legirag/shared':
+        specifier: workspace:*
+        version: link:../shared
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      tsx:
+        specifier: ^4.19.0
+        version: 4.23.12
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
   packages/ingest:
     dependencies:
       '@legirag/shared':

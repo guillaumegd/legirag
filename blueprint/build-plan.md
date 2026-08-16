@@ -69,7 +69,7 @@ below closes out what's left of that foundation before data work starts.
     `Retriever`: BM25 top 50 + vector top 50 + RRF fusion top 20, setting the
     RLS session variables per query, returning coherent results on manual
     smoke questions (reranking and the abstention threshold stay item 6's job)
-- [ ] 5. **Evaluation question set and harness** - a set of annotated
+- [x] 5. **Evaluation question set and harness** - a set of annotated
   questions (routine lookups, mandatory cross-references, time-sensitive
   answers, out-of-scope questions, questions with a false premise) with
   expected answers, plus a runnable harness that scores retrieval quality

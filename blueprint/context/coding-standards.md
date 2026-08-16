@@ -24,6 +24,8 @@ pnpm workspaces (`packages/*`), each package built independently with
   wiring (`ModelProvider`, `Retriever`)
 - `ingest` - COLD/LEGI XML/KALI ingestion, chunking, embeddings
 - `retrieval` - Supabase implementation of the `Retriever` interface
+- `eval` - the evaluation question set and scoring harness, consumed later
+  by item 6/9
 - `agent` - LangGraph.js graph, prompts, the fixed-chain path
 - `mcp` - MCP server exposing the agent's tools
 - `api` - NestJS HTTP layer (`POST /question`, rate limiting, cost guards)

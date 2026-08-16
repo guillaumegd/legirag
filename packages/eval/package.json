@@ -1,0 +1,22 @@
+{
+  "name": "@legirag/eval",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "harness": "tsx --env-file=../../.env src/run-harness.ts"
+  },
+  "dependencies": {
+    "@legirag/shared": "workspace:*",
+    "@legirag/retrieval": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

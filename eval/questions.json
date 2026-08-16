@@ -1,0 +1,103 @@
+[
+  {
+    "id": "q-001",
+    "category": "recherche_simple",
+    "question": "Quelle est la vitesse maximale autorisée en agglomération ?",
+    "articlesAttendus": ["LEGIARTI000028436430"],
+    "notes": "code-de-la-route R413-3, vitesse limitée à 50 km/h en agglomération."
+  },
+  {
+    "id": "q-002",
+    "category": "recherche_simple",
+    "question": "Quel est le délai de rétractation pour un achat en ligne ?",
+    "articlesAttendus": ["LEGIARTI000032226842"],
+    "notes": "code-de-la-consommation L221-18, délai de 14 jours."
+  },
+  {
+    "id": "q-003",
+    "category": "recherche_simple",
+    "question": "Quelle peine encourt l'auteur d'un vol simple ?",
+    "articlesAttendus": ["LEGIARTI000006418131"],
+    "notes": "code pénal 311-3, 3 ans d'emprisonnement et 45 000 euros d'amende."
+  },
+  {
+    "id": "q-004",
+    "category": "recherche_simple",
+    "question": "Quelles sont les conditions de validité d'un contrat ?",
+    "articlesAttendus": ["LEGIARTI000032040911"],
+    "notes": "code civil 1128, consentement / capacité / contenu licite."
+  },
+  {
+    "id": "q-005",
+    "category": "recherche_simple",
+    "question": "Comment est calculé l'impôt sur le revenu ?",
+    "articlesAttendus": ["LEGIARTI000048805432"],
+    "notes": "code général des impôts, article 197."
+  },
+  {
+    "id": "q-006",
+    "category": "renvoi_obligatoire",
+    "question": "Qui peut collecter les informations sur le nombre de points d'un permis de conduire, et que risque-t-on à les détourner de leur finalité ?",
+    "articlesAttendus": ["LEGIARTI000006840969", "LEGIARTI000006417981", "LEGIARTI000006417984"],
+    "notes": "code-de-la-route L223-7 renvoie (inter-code, résolu) vers code pénal 226-21 et 226-22 - vérifié dans la table renvois."
+  },
+  {
+    "id": "q-007",
+    "category": "renvoi_obligatoire",
+    "question": "Que risque une personne qui usurpe le nom d'autrui pour qu'une condamnation liée au permis de conduire soit enregistrée à son nom au lieu du sien ?",
+    "articlesAttendus": ["LEGIARTI000006841021", "LEGIARTI000006418661"],
+    "notes": "code-de-la-route L225-7 renvoie (inter-code, résolu) vers code pénal 434-23 pour la peine encourue."
+  },
+  {
+    "id": "q-008",
+    "category": "sensible_a_la_date",
+    "question": "Quelle est la vitesse maximale autorisée en agglomération ?",
+    "dateReference": "2020-01-01",
+    "articlesAttendus": ["LEGIARTI000028436430"],
+    "notes": "R413-3 : date_debut = 2014-01-10, donc en vigueur au 2020-01-01."
+  },
+  {
+    "id": "q-009",
+    "category": "sensible_a_la_date",
+    "question": "Quelle est la vitesse maximale autorisée en agglomération ?",
+    "dateReference": "2000-01-01",
+    "articlesExclus": ["LEGIARTI000028436430"],
+    "notes": "R413-3 : date_debut = 2014-01-10, donc absent au 2000-01-01 - reprend le test de 4d (checkDateReferenceFilter)."
+  },
+  {
+    "id": "q-010",
+    "category": "hors_perimetre",
+    "question": "Quel est le préavis de licenciement pour un cadre en CDI ?",
+    "notes": "code du travail, non chargé dans le corpus de démonstration (5 codes, voir 4d)."
+  },
+  {
+    "id": "q-011",
+    "category": "hors_perimetre",
+    "question": "Quelles sont les conditions d'obtention d'un titre de séjour en France ?",
+    "notes": "CESEDA, non chargé."
+  },
+  {
+    "id": "q-012",
+    "category": "hors_perimetre",
+    "question": "Quelles sont les obligations d'une installation classée pour la protection de l'environnement (ICPE) ?",
+    "notes": "code de l'environnement, non chargé."
+  },
+  {
+    "id": "q-013",
+    "category": "fausse_premisse",
+    "question": "Puisque le vol simple est un crime, quelle cour d'assises est compétente pour le juger ?",
+    "notes": "fausse prémisse : le vol simple (311-3) est un délit, jugé par le tribunal correctionnel, pas un crime jugé en cour d'assises."
+  },
+  {
+    "id": "q-014",
+    "category": "fausse_premisse",
+    "question": "Le délai de rétractation légal de 30 jours pour un achat en ligne s'applique-t-il aussi aux achats en magasin ?",
+    "notes": "fausse prémisse double : le délai légal est de 14 jours (L221-18), et le droit de rétractation ne couvre que la vente à distance, pas les achats en magasin."
+  },
+  {
+    "id": "q-015",
+    "category": "fausse_premisse",
+    "question": "À partir de quel âge un contrat signé seul par un mineur est-il automatiquement valable sans l'accord de ses représentants légaux ?",
+    "notes": "fausse prémisse : un mineur non émancipé n'a en général pas la capacité de contracter seul (1128, capacité de contracter)."
+  }
+]

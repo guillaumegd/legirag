@@ -109,6 +109,15 @@ below closes out what's left of that foundation before data work starts.
       step first (cheap, ~15-45 calls) before deciding whether to touch
       `SupabaseRetriever` at all, and prefer the Bedrock-routed model over a
       separate Cohere account if the region question gets resolved.
+    - Revisited 2026-08-17: Voyage AI and Jina AI rerankers were checked as
+      cheaper, non-Bedrock alternatives (both cheaper per token than Cohere
+      and available outside `eu-central-1`, sidestepping the region issue).
+      Not adopted - price was never the actual blocker (re-deriving the
+      isolated measurement costs under $0.10 regardless of provider); the
+      open question is still whether re-ranking gives any measurable lift at
+      all, which no pricing comparison answers. Direct Cohere API was also
+      checked and is not a cheaper alternative to Bedrock - both are $2/1000
+      queries.
 - [ ] 7. **Tool server** - a public server exposing search, cross-reference
   following, deterministic calculation, and the other agent tools, with
   versioned tool descriptions, working end-to-end with a third-party agent

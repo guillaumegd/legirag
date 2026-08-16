@@ -88,7 +88,7 @@ below closes out what's left of that foundation before data work starts.
     search variant against the already-indexed, context-prefixed `chunks`
     table (4a), scored through the harness and compared against 6a to isolate
     contextual chunking's own effect, holding the search method constant
-  - [ ] 6c. **Hybrid keyword + vector search, measured in isolation** - the
+  - [x] 6c. **Hybrid keyword + vector search, measured in isolation** - the
     existing, unchanged `SupabaseRetriever` (4d) re-run through the harness
     and compared against 6b to isolate hybrid fusion's own effect, holding
     the chunking method constant

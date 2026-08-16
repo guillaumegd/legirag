@@ -84,7 +84,7 @@ below closes out what's left of that foundation before data work starts.
     brute-force search (no DB persistence, given the tight Supabase size
     headroom noted under item 10), scored through the existing eval harness
     to establish the quality floor everything else is measured against
-  - [ ] 6b. **Contextual chunking, measured in isolation** - a vector-only
+  - [x] 6b. **Contextual chunking, measured in isolation** - a vector-only
     search variant against the already-indexed, context-prefixed `chunks`
     table (4a), scored through the harness and compared against 6a to isolate
     contextual chunking's own effect, holding the search method constant

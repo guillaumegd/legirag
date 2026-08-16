@@ -95,6 +95,20 @@ below closes out what's left of that foundation before data work starts.
   - [ ] 6d. **Re-ranking** - add a Cohere re-ranking step to
     `SupabaseRetriever`, scored through the harness and compared against 6c;
     the one sub-feature here that changes the production retriever
+    - Paused 2026-08-16, not abandoned: 6c already found hybrid search added
+      zero measurable lift over vector-only on the eval sample, so
+      re-ranking's own lift is uncertain too. Cohere Rerank 3.5 is available
+      through Bedrock (not a separate Cohere account) at ~$0.002/call - cheap
+      relative to the LLM generation call that follows it - but only in
+      `eu-central-1`, not this project's current `eu-west-3`, and this is a
+      demo project with no real users yet, so a region change isn't justified
+      for an uncertain gain right now. A first exploratory step in `packages/
+      shared/src/providers/rerank.ts` (direct Cohere REST API, not Bedrock)
+      was built and unit tested on the abandoned `feature/re-ranking` branch,
+      never merged - if resumed later, re-derive the isolated-measurement
+      step first (cheap, ~15-45 calls) before deciding whether to touch
+      `SupabaseRetriever` at all, and prefer the Bedrock-routed model over a
+      separate Cohere account if the region question gets resolved.
 - [ ] 7. **Tool server** - a public server exposing search, cross-reference
   following, deterministic calculation, and the other agent tools, with
   versioned tool descriptions, working end-to-end with a third-party agent

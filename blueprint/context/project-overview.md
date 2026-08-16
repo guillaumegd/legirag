@@ -153,9 +153,19 @@ Locked contract, enforced in code, not just prompted for - a domain rule
 
 ### Collective bargaining agreement (optional branch)
 
-Filter dimension already wired (`idcc` on `Article` and on `RequeteRecherche`,
-the `Retriever.search` query shape) but the KALI ingestion itself is not
-built; first in line to cut if time runs short.
+Filter dimension already wired at the type level (`idcc` on `Article` and on
+`RequeteRecherche`, the `Retriever.search` query shape) but the KALI
+ingestion itself is not built; first in line to cut if time runs short.
+
+Note (from 4c, 2026-08-16): the RLS `article_visible()` function originally
+also filtered on an `app.idcc` session variable, but it was removed during
+4c's implementation - no KALI data exists yet (`idcc` is `null` on every
+article today), so wiring a live DB filter for it was speculative. Whichever
+feature actually builds the KALI branch must add that RLS clause back (a
+`create or replace function` migration, same shape as 4c's
+`add_search_rls.sql`/`remove_idcc_rls_filter.sql`) alongside the ingestion
+work - the DB must not trust application code alone to keep general-law and
+sector-specific answers apart.
 
 ## Tech stack
 
@@ -235,6 +245,20 @@ named yet in the plans.
 
 ## Open questions
 
+- **Item 10 must revisit 4c's blanket `ABROGE` block** - the RLS
+  `article_visible()` function hides any `ABROGE` row unconditionally today
+  (no historical rows exist yet, so this is a safe interim default, not a
+  final design). Time travel to a past date should surface the version that
+  was actually in force then instead of hiding it - resolve this before or
+  while spec'ing item 10. See build-plan.md's note under item 10 and 4c's
+  archived spec for the exact predicate to change.
+- **Item 10's database size headroom is tighter than 4b assumed** - checked
+  live 2026-08-16: 353 MB of Supabase's 500 MB free-tier cap already used by
+  the 5 demo codes with zero history rows, `chunks` (embeddings) dominating
+  the cost. `code-general-des-impots` is the heaviest of the 5
+  (7 777/~21 300 chunks, ~30 MB of vectors). Re-check real sizes before
+  adding history rows in item 10; dropping `code-general-des-impots` or
+  narrowing the demo set further is the likely first move if space is tight.
 - **Front-end host undecided** - project-plan §8 leaves static hosting vs.
   Vercel open; resolve before `/release` is run for the front end.
 - **Health check path** not named yet - fine to leave until the API package

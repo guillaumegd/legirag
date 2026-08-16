@@ -61,7 +61,7 @@ below closes out what's left of that foundation before data work starts.
     table (`embedding vector(1024)`, generated `tsv`), generate and persist
     Cohere embed-v4 embeddings for every chunk in batches, and add the HNSW,
     GIN, and B-tree indexes
-  - [ ] 4c. **Access-control policies (RLS)** - session-variable-driven RLS
+  - [x] 4c. **Access-control policies (RLS)** - session-variable-driven RLS
     on the search path enforcing `etat`/date/code/`idcc` filtering in
     Postgres itself, proved by the project's most important test: an article
     marked `ABROGE` and named explicitly by number must never come back
@@ -97,6 +97,23 @@ below closes out what's left of that foundation before data work starts.
   subset of everyday codes, wire up the time-travel lookup and its date
   filtering, and calibrate the abstention threshold so the system declines
   out-of-scope questions instead of guessing
+  - Note (from 4c): `article_visible()`'s Postgres RLS function currently
+    hides any `ABROGE` row unconditionally, with no exception - a deliberate
+    interim simplification since no historical/abrogated rows exist in the
+    corpus yet. This item must revisit that rule so a `date_reference` in the
+    past can surface the version that was actually in force then (with the
+    answer clearly labeled as no longer current), instead of hiding it
+    outright. See 4c's spec/history for the exact predicate.
+  - Note (from 4c, checked 2026-08-16): DB size is a real constraint here,
+    not a hypothetical one. The project is already at 353 MB of Supabase's
+    500 MB free-tier cap (70%) with only the 5 demo codes and *zero* history
+    rows - `chunks` (embeddings) is the dominant cost, not raw text. Of the 5
+    demo codes, `code-general-des-impots` is the heaviest by a clear margin
+    (7 777 of ~21 300 chunks, ~30 MB of vectors alone - roughly double the
+    smallest code). Before or while adding history rows here, re-check real
+    sizes and consider dropping `code-general-des-impots` (or narrowing the
+    demo set further) rather than assuming the ~150-250 MB headroom 4b
+    originally estimated is still accurate.
 - [ ] 11. **Public API** - endpoints for asking a question (streamed
   response), reading a trace, and reading an article, validated end-to-end
   against the shared schemas, with per-request and daily cost caps, rate

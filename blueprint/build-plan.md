@@ -47,7 +47,7 @@ below closes out what's left of that foundation before data work starts.
   - [x] 3b. **Renvois table and load** - create the `renvois` table, resolve
     each extracted reference to its target `article_identifier` where
     possible, and load the full extracted graph into Supabase
-- [ ] 4. **Search index and access-control policies** - contextual chunking,
+- [x] 4. **Search index and access-control policies** - contextual chunking,
   vector embeddings, keyword index, the hybrid `Retriever` implementation,
   and row-level security policies enforcing state/date/code/agreement-ID
   filtering in the database itself (a repealed article must never be
@@ -65,7 +65,7 @@ below closes out what's left of that foundation before data work starts.
     on the search path enforcing `etat`/date/code/`idcc` filtering in
     Postgres itself, proved by the project's most important test: an article
     marked `ABROGE` and named explicitly by number must never come back
-  - [ ] 4d. **Hybrid `Retriever` implementation** - the first concrete
+  - [x] 4d. **Hybrid `Retriever` implementation** - the first concrete
     `Retriever`: BM25 top 50 + vector top 50 + RRF fusion top 20, setting the
     RLS session variables per query, returning coherent results on manual
     smoke questions (reranking and the abstention threshold stay item 6's job)

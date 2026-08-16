@@ -20,3 +20,4 @@ coverage/
 docs/private/
 
 packages/ingest/.data/
+packages/eval/.data/

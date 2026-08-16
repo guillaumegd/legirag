@@ -8,3 +8,5 @@ export {
   type HarnessReport,
   type QuestionScore,
 } from './scoring.js';
+export { naiveChunk, type NaiveChunk } from './naive-chunking.js';
+export { cosineSimilarity, rankByCosineSimilarity, type EmbeddedNaiveChunk } from './naive-retriever.js';

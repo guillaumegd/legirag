@@ -6,3 +6,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..');
 
 export const questionsPath = path.join(repoRoot, 'eval', 'questions.json');
+
+// Cache local, gitignored (packages/eval/.data/) - jamais un chemin relatif au
+// cwd de l'appelant, même raison que questionsPath ci-dessus.
+export const naiveEmbeddingsCachePath = path.join(repoRoot, 'packages', 'eval', '.data', 'naive-embeddings.json');

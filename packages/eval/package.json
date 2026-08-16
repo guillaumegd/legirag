@@ -8,14 +8,18 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b",
-    "harness": "tsx --env-file=../../.env src/run-harness.ts"
+    "harness": "tsx --env-file=../../.env src/run-harness.ts",
+    "build:naive-cache": "tsx --env-file=../../.env src/build-naive-cache.ts",
+    "naive-baseline": "tsx --env-file=../../.env src/run-naive-baseline.ts"
   },
   "dependencies": {
     "@legirag/shared": "workspace:*",
     "@legirag/retrieval": "workspace:*",
+    "pg": "^8.23.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/pg": "^8.21.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }

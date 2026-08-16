@@ -79,6 +79,22 @@ below closes out what's left of that foundation before data work starts.
   deliberately naive baseline, then contextual chunking, hybrid keyword +
   vector search, and re-ranking, each rerun through the harness on its own so
   its individual effect is visible
+  - [x] 6a. **Naive baseline** - a deliberately naive chunker (whole article,
+    no hierarchical context prefix) plus an out-of-band, vector-only
+    brute-force search (no DB persistence, given the tight Supabase size
+    headroom noted under item 10), scored through the existing eval harness
+    to establish the quality floor everything else is measured against
+  - [ ] 6b. **Contextual chunking, measured in isolation** - a vector-only
+    search variant against the already-indexed, context-prefixed `chunks`
+    table (4a), scored through the harness and compared against 6a to isolate
+    contextual chunking's own effect, holding the search method constant
+  - [ ] 6c. **Hybrid keyword + vector search, measured in isolation** - the
+    existing, unchanged `SupabaseRetriever` (4d) re-run through the harness
+    and compared against 6b to isolate hybrid fusion's own effect, holding
+    the chunking method constant
+  - [ ] 6d. **Re-ranking** - add a Cohere re-ranking step to
+    `SupabaseRetriever`, scored through the harness and compared against 6c;
+    the one sub-feature here that changes the production retriever
 - [ ] 7. **Tool server** - a public server exposing search, cross-reference
   following, deterministic calculation, and the other agent tools, with
   versioned tool descriptions, working end-to-end with a third-party agent

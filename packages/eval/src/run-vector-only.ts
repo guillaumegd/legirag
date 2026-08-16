@@ -1,21 +1,8 @@
-import { readFileSync } from 'node:fs';
 import { embedTexts } from '@legirag/shared';
-import type { Chunk } from '@legirag/shared';
-import { naiveEmbeddingsCachePath } from './data-paths.js';
+import { type ChunkRow, loadSampleArticleIds, toChunk, toPgVector } from './chunk-row.js';
 import { createDatabaseClient } from './pg-client.js';
 import { loadEvaluationQuestions } from './questions.js';
 import { aggregateResults, HARNESS_TOP_K, scoreQuestion, type QuestionScore } from './scoring.js';
-
-interface CachedEntry {
-  articleIdentifier: string;
-}
-
-// Relit l'échantillon d'articles verrouillé par 6a plutôt que de le
-// re-dériver ici - voir current-feature.md, In scope.
-function loadSampleArticleIds(): string[] {
-  const cache: CachedEntry[] = JSON.parse(readFileSync(naiveEmbeddingsCachePath, 'utf-8'));
-  return cache.map((c) => c.articleIdentifier);
-}
 
 // Mêmes CTE vector_search que SupabaseRetriever (4d), sans keyword_search ni
 // fusion RRF - isole l'effet du chunking, pas de la recherche hybride (6c).
@@ -26,27 +13,6 @@ const VECTOR_ONLY_SQL = `
   order by embedding <=> $2::extensions.vector
   limit $3
 `;
-
-// Miroir de toPgVector dans supabase-retriever.ts / load-chunks.ts.
-function toPgVector(embedding: number[]): string {
-  return `[${embedding.join(',')}]`;
-}
-
-interface ChunkRow {
-  id: number;
-  article_identifier: string;
-  subdivision_label: string | null;
-  contenu: string;
-}
-
-function toChunk(row: ChunkRow): Chunk {
-  return {
-    id: row.id,
-    articleIdentifier: row.article_identifier,
-    contenu: row.contenu,
-    ...(row.subdivision_label !== null ? { subdivisionLabel: row.subdivision_label } : {}),
-  };
-}
 
 async function main(): Promise<void> {
   const articleIds = loadSampleArticleIds();

@@ -1,21 +1,8 @@
-import { readFileSync } from 'node:fs';
 import { embedTexts } from '@legirag/shared';
-import type { Chunk } from '@legirag/shared';
-import { naiveEmbeddingsCachePath } from './data-paths.js';
+import { type ChunkRow, loadSampleArticleIds, toChunk, toPgVector } from './chunk-row.js';
 import { createDatabaseClient } from './pg-client.js';
 import { loadEvaluationQuestions } from './questions.js';
 import { aggregateResults, HARNESS_TOP_K, scoreQuestion, type QuestionScore } from './scoring.js';
-
-interface CachedEntry {
-  articleIdentifier: string;
-}
-
-// Relit l'échantillon d'articles verrouillé par 6a/6b - voir
-// current-feature.md, In scope.
-function loadSampleArticleIds(): string[] {
-  const cache: CachedEntry[] = JSON.parse(readFileSync(naiveEmbeddingsCachePath, 'utf-8'));
-  return cache.map((c) => c.articleIdentifier);
-}
 
 const RRF_K = 60; // même constante que SupabaseRetriever (4d), non ajustée ici
 const PRE_FUSION_LIMIT = 50; // idem
@@ -51,26 +38,6 @@ const HYBRID_CAPPED_SQL = `
   limit $3
 `;
 
-function toPgVector(embedding: number[]): string {
-  return `[${embedding.join(',')}]`;
-}
-
-interface HybridRow {
-  id: number;
-  article_identifier: string;
-  subdivision_label: string | null;
-  contenu: string;
-}
-
-function toChunk(row: HybridRow): Chunk {
-  return {
-    id: row.id,
-    articleIdentifier: row.article_identifier,
-    contenu: row.contenu,
-    ...(row.subdivision_label !== null ? { subdivisionLabel: row.subdivision_label } : {}),
-  };
-}
-
 async function main(): Promise<void> {
   const articleIds = loadSampleArticleIds();
   const questions = loadEvaluationQuestions();
@@ -87,7 +54,7 @@ async function main(): Promise<void> {
       const [queryEmbedding] = await embedTexts([q.question], 'search_query');
       if (!queryEmbedding) throw new Error('embedTexts a renvoyé un résultat vide pour la requête.');
 
-      const { rows } = await client.query<HybridRow>(HYBRID_CAPPED_SQL, [
+      const { rows } = await client.query<ChunkRow>(HYBRID_CAPPED_SQL, [
         toPgVector(queryEmbedding),
         q.question,
         HARNESS_TOP_K,

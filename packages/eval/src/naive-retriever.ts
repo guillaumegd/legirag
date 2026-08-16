@@ -12,7 +12,10 @@ export function cosineSimilarity(a: number[], b: number[]): number {
     normA += ai * ai;
     normB += bi * bi;
   }
-  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+  const magnitude = Math.sqrt(normA) * Math.sqrt(normB);
+  // Un vecteur de magnitude nulle n'a pas de similarité définie - traité
+  // comme "aucune similarité" plutôt que de propager NaN dans le tri.
+  return magnitude === 0 ? 0 : dot / magnitude;
 }
 
 export interface EmbeddedNaiveChunk {

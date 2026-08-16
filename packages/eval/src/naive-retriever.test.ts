@@ -13,6 +13,12 @@ describe('cosineSimilarity', () => {
   it('renvoie -1 pour deux vecteurs opposés', () => {
     expect(cosineSimilarity([1, 2], [-1, -2])).toBeCloseTo(-1);
   });
+
+  it('renvoie 0 plutôt que NaN quand un vecteur est de magnitude nulle', () => {
+    expect(cosineSimilarity([0, 0], [1, 1])).toBe(0);
+    expect(cosineSimilarity([1, 1], [0, 0])).toBe(0);
+    expect(cosineSimilarity([0, 0], [0, 0])).toBe(0);
+  });
 });
 
 describe('rankByCosineSimilarity', () => {

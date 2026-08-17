@@ -303,7 +303,7 @@ below closes out what's left of that foundation before data work starts.
       document the trigger (every PR, only retrieval/agent-path changes, a
       schedule, manual dispatch) rather than default to "every push" by
       inertia.
-  - [ ] 12c. **Event-driven reindexing on text updates** - when an article's
+  - [x] 12c. **Event-driven reindexing on text updates** - when an article's
     source text changes, automatically recompute its chunk(s)/embedding(s)
     instead of requiring a manual full reload
   - [ ] 12d. **Terraform provisioning the stack from scratch** - extend

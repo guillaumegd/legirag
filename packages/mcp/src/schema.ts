@@ -77,3 +77,27 @@ export const RouterQuestionOutput = z.object({
   raisonnement: z.string().min(1),
 });
 export type RouterQuestionOutput = z.infer<typeof RouterQuestionOutput>;
+
+// Entrées MCP des trois outils non implémentés (7d) - contrats verrouillés
+// (cahier des charges technique §5.3), pas de schéma de sortie : voir
+// current-feature.md / "Scope decision: stub behavior" (aucune sortie réelle
+// n'est jamais produite, donc rien à typer).
+export const VersionALaDateInput = z.object({
+  articleNum: z.string().min(1),
+  code: z.string().min(1),
+  date: z.string().date(),
+});
+export type VersionALaDateInput = z.infer<typeof VersionALaDateInput>;
+
+export const ResoudreConventionInput = z.object({
+  secteur: z.string().min(1).optional(),
+  idcc: z.string().min(1).optional(),
+  nomConvention: z.string().min(1).optional(),
+});
+export type ResoudreConventionInput = z.infer<typeof ResoudreConventionInput>;
+
+export const AnalyserDocumentInput = z.object({
+  contenu: z.string().min(1),
+  question: z.string().min(1),
+});
+export type AnalyserDocumentInput = z.infer<typeof AnalyserDocumentInput>;

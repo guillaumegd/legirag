@@ -95,6 +95,10 @@ below closes out what's left of that foundation before data work starts.
   - [ ] 6d. **Re-ranking** - add a Cohere re-ranking step to
     `SupabaseRetriever`, scored through the harness and compared against 6c;
     the one sub-feature here that changes the production retriever
+    - On hold until explicit further notice (confirmed 2026-08-17): item 7
+      (tool server) is being built ahead of it. Do not resume 6d via a
+      no-argument `/feature` run - only pick it up again on an explicit
+      `/feature 6d`.
     - Paused 2026-08-16, not abandoned: 6c already found hybrid search added
       zero measurable lift over vector-only on the eval sample, so
       re-ranking's own lift is uncertain too. Cohere Rerank 3.5 is available
@@ -118,7 +122,7 @@ below closes out what's left of that foundation before data work starts.
       all, which no pricing comparison answers. Direct Cohere API was also
       checked and is not a cheaper alternative to Bedrock - both are $2/1000
       queries.
-- [ ] 7. **Tool server** - a public server exposing search, cross-reference
+- [x] 7. **Tool server** - a public server exposing search, cross-reference
   following, deterministic calculation, and the other agent tools, with
   versioned tool descriptions, working end-to-end with a third-party agent
   client
@@ -135,7 +139,7 @@ below closes out what's left of that foundation before data work starts.
     remaining three real tools: LLM-based multi-code routing, a deterministic
     (unit-tested, no model call) calculation tool, and the trivial escalation
     tool
-  - [ ] 7d. **Stub tools and third-party client verification** - stubs for
+  - [x] 7d. **Stub tools and third-party client verification** - stubs for
     `version_a_la_date` (real at item 10), `resoudre_convention` (real if the
     KALI branch is built), and `analyser_document` (real if the optional
     document mode is built), plus the end-to-end check with a real third-party

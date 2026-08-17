@@ -7,21 +7,37 @@ import { requireEnv } from '@legirag/shared';
 import { SupabaseRetriever } from '@legirag/retrieval';
 import { calculer } from './calculer.js';
 import { toRequeteRecherche, toToolContent } from './chercher-droit.js';
+import { analyserDocumentDescription } from './descriptions/analyser-document.js';
 import { calculerDescription } from './descriptions/calculer.js';
 import { chercherDroitDescription } from './descriptions/chercher-droit.js';
 import { demanderALHumainDescription } from './descriptions/demander-a-l-humain.js';
+import { resoudreConventionDescription } from './descriptions/resoudre-convention.js';
 import { routerQuestionDescription } from './descriptions/router-question.js';
 import { suivreRenvoiDescription } from './descriptions/suivre-renvoi.js';
+import { versionALaDateDescription } from './descriptions/version-a-la-date.js';
 import { demanderALHumain } from './demander-a-l-humain.js';
 import { routerQuestion } from './router-question.js';
 import {
+  AnalyserDocumentInput,
   CalculerInput,
   ChercherDroitInput,
   DemanderALHumainInput,
+  ResoudreConventionInput,
   RouterQuestionInput,
   SuivreRenvoiInput,
+  VersionALaDateInput,
 } from './schema.js';
+import { stubToolResult } from './stub-tool.js';
 import { suivreRenvoi } from './suivre-renvoi.js';
+
+const VERSION_A_LA_DATE_MESSAGE =
+  "Non implémenté : nécessite le palier de profondeur (historique complet des textes), prévu à l'item 10 de la feuille de route. Utilise chercher_droit avec une date de référence pour la version actuellement en vigueur, ou demander_a_l_humain si la question porte sur une version passée du texte.";
+
+const RESOUDRE_CONVENTION_MESSAGE =
+  "Non implémenté : nécessite l'ingestion du corpus KALI (branche convention collective), non construite. Utilise demander_a_l_humain si la question porte sur une convention collective spécifique.";
+
+const ANALYSER_DOCUMENT_MESSAGE =
+  "Non implémenté : le mode d'analyse de document déposé n'est pas construit. Utilise demander_a_l_humain si la question porte sur un document fourni par l'utilisateur.";
 
 const DEFAULT_PORT = 3333;
 
@@ -75,6 +91,24 @@ export function createLegiragMcpServer(): McpServer {
       const result = await routerQuestion(input.question);
       return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
     },
+  );
+
+  server.registerTool(
+    versionALaDateDescription.name,
+    { description: versionALaDateDescription.description, inputSchema: VersionALaDateInput.shape },
+    (_input) => stubToolResult(VERSION_A_LA_DATE_MESSAGE),
+  );
+
+  server.registerTool(
+    resoudreConventionDescription.name,
+    { description: resoudreConventionDescription.description, inputSchema: ResoudreConventionInput.shape },
+    (_input) => stubToolResult(RESOUDRE_CONVENTION_MESSAGE),
+  );
+
+  server.registerTool(
+    analyserDocumentDescription.name,
+    { description: analyserDocumentDescription.description, inputSchema: AnalyserDocumentInput.shape },
+    (_input) => stubToolResult(ANALYSER_DOCUMENT_MESSAGE),
   );
 
   return server;

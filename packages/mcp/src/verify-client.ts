@@ -68,6 +68,32 @@ async function main(): Promise<void> {
   const routerResult = await client.callTool({ name: 'router_question', arguments: { question: SMOKE_ROUTER_QUESTION } });
   console.log(JSON.stringify(routerResult, null, 2));
 
+  // Les trois outils suivants sont des stubs (7d) : isError: true attendu à
+  // chaque appel, voir current-feature.md / "Scope decision: stub behavior".
+  console.log('\nAppel de version_a_la_date (stub) :');
+  const versionResult = await client.callTool({
+    name: 'version_a_la_date',
+    arguments: { articleNum: 'L221-18', code: 'code-de-la-consommation', date: '2020-01-01' },
+  });
+  console.log(JSON.stringify(versionResult, null, 2));
+
+  console.log('\nAppel de resoudre_convention (stub) :');
+  const conventionResult = await client.callTool({
+    name: 'resoudre_convention',
+    arguments: { secteur: 'métallurgie' },
+  });
+  console.log(JSON.stringify(conventionResult, null, 2));
+
+  console.log('\nAppel de analyser_document (stub) :');
+  const documentResult = await client.callTool({
+    name: 'analyser_document',
+    arguments: {
+      contenu: "Le présent contrat est conclu pour une durée d'un an à compter du 1er janvier 2026.",
+      question: 'Quelle est la durée du contrat ?',
+    },
+  });
+  console.log(JSON.stringify(documentResult, null, 2));
+
   await client.close();
 
   // Preuve du filtre de visibilité par cible (7b, Step 5) : appel direct de

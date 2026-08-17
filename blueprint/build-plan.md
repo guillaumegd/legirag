@@ -294,7 +294,7 @@ below closes out what's left of that foundation before data work starts.
       is no per-model $ pricing table anywhere in the repo. 12a should keep
       that convention (token usage per call) unless a $ estimate is
       explicitly wanted, which would need a new pricing table first.
-  - [ ] 12b. **Evaluation suite as a blocking CI regression check** - wire
+  - [x] 12b. **Evaluation suite as a blocking CI regression check** - wire
     the `packages/eval` harness into CI as a check that fails the build on a
     quality regression against a stored baseline
     - Note: the harness makes real Supabase + Bedrock calls (cost and

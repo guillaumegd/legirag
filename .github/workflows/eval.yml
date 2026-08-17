@@ -1,0 +1,63 @@
+name: Eval regression check
+
+# Item 12b : garde-fou de qualité, pas le gate rapide (voir ci.yml) - déclenché
+# seulement quand le diff peut réellement faire bouger les scores de l'agent,
+# pour ne pas payer un run Bedrock+Supabase (~0,10-0,20 $) sur un changement
+# web/docs sans rapport.
+#
+# Secrets requis dans les paramètres GitHub Actions du dépôt (mêmes noms que
+# .env.example) avant que ce check puisse passer en réel :
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION,
+#   MODEL_VOLUME, MODEL_ESCALADE,
+#   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, DATABASE_URL
+# Non provisionnables depuis ce dépôt - action manuelle, même catégorie que
+# le plafond de facturation AWS documenté dans project-overview.md.
+
+on:
+  pull_request:
+    paths:
+      - 'packages/agent/**'
+      - 'packages/retrieval/**'
+      - 'packages/eval/**'
+      - 'packages/shared/**'
+      - 'eval/questions.json'
+      - 'eval/baseline.json'
+      - '.github/workflows/eval.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/agent/**'
+      - 'packages/retrieval/**'
+      - 'packages/eval/**'
+      - 'packages/shared/**'
+      - 'eval/questions.json'
+      - 'eval/baseline.json'
+      - '.github/workflows/eval.yml'
+
+jobs:
+  eval-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @legirag/eval regression-check:ci
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          MODEL_VOLUME: ${{ secrets.MODEL_VOLUME }}
+          MODEL_ESCALADE: ${{ secrets.MODEL_ESCALADE }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

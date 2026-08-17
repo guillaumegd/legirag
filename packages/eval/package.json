@@ -10,6 +10,8 @@
     "typecheck": "tsc -b",
     "harness": "tsx --env-file=../../.env src/run-harness.ts",
     "agent-harness": "tsx --env-file=../../.env src/run-agent-harness.ts",
+    "regression-check": "tsx --env-file=../../.env src/run-regression-check.ts",
+    "regression-check:ci": "tsx src/run-regression-check.ts",
     "build:naive-cache": "tsx --env-file=../../.env src/build-naive-cache.ts",
     "naive-baseline": "tsx --env-file=../../.env src/run-naive-baseline.ts",
     "vector-only": "tsx --env-file=../../.env src/run-vector-only.ts",

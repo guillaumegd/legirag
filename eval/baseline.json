@@ -1,0 +1,12 @@
+{
+  "capturedAt": "2026-08-17T20:06:13.000Z",
+  "perCategory": [
+    { "category": "recherche_simple", "questionCount": 5, "routingAccuracy": 1, "abstentionAccuracy": 1 },
+    { "category": "renvoi_obligatoire", "questionCount": 2, "routingAccuracy": 1, "abstentionAccuracy": 1 },
+    { "category": "sensible_a_la_date", "questionCount": 2, "routingAccuracy": 1, "abstentionAccuracy": 1 },
+    { "category": "hors_perimetre", "questionCount": 3, "abstentionAccuracy": 1 },
+    { "category": "fausse_premisse", "questionCount": 3, "abstentionAccuracy": 0 }
+  ],
+  "overall": { "routingAccuracy": 1, "abstentionAccuracy": 0.8 },
+  "crossRefCoverageMean": 1
+}

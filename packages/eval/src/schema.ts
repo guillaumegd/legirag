@@ -31,3 +31,19 @@ export const EvaluationQuestion = z
     { message: 'vérité terrain incohérente avec la catégorie (voir Data / contracts).' },
   );
 export type EvaluationQuestion = z.infer<typeof EvaluationQuestion>;
+
+// Item 12b : forme du rapport de qualité comparé entre eval/baseline.json et
+// un run en direct - miroir d'AgentHarnessReport (agent-scoring.ts) plus la
+// couverture des renvois, qui vit dans un module séparé côté harnais.
+const BaselineMetrics = z.object({
+  routingAccuracy: z.number().min(0).max(1).optional(),
+  abstentionAccuracy: z.number().min(0).max(1),
+});
+
+export const Baseline = z.object({
+  capturedAt: z.string().min(1),
+  perCategory: z.array(BaselineMetrics.extend({ category: EvaluationCategory, questionCount: z.number().int().nonnegative() })),
+  overall: BaselineMetrics,
+  crossRefCoverageMean: z.number().min(0).max(1).optional(),
+});
+export type Baseline = z.infer<typeof Baseline>;

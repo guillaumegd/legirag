@@ -265,6 +265,16 @@ named yet in the plans.
   (build-plan item 11) is spec'd.
 - **No route paths named** in the plans - `/feature` can define them when it
   specs item 13 (front end).
+- **AWS account-level billing quota still needs to be set manually** - item
+  11c built app-level cost guardrails (per-request question-length bound,
+  daily token circuit breaker, `packages/api/src/question/cost-guard.service.ts`),
+  but those only bound spend *within* the app. There is no hard cap at the
+  AWS account level yet (Budgets alert + a spend-limiting action, or an
+  account-level Service Quota on Bedrock throughput) - the user still needs
+  to configure this directly in the AWS console/CLI as defense in depth, in
+  case the app-level guard is ever bypassed or misconfigured. Not something
+  `/implement` can do from this repo - it requires AWS account access
+  outside the codebase.
 - **Large build-plan items** - items 4, 6, 11, 12, and 13 each bundle several
   sub-outcomes (e.g. item 6's "each measured in isolation" naive baseline /
   chunking / hybrid / re-ranking sequence). Not a plan-shape defect - `/feature`

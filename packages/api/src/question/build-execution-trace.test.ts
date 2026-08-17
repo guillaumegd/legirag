@@ -89,4 +89,33 @@ describe('buildExecutionTrace', () => {
 
     expect(trace.steps[0]?.summary).toEqual({});
   });
+
+  it('attribue à chaque pas seulement les appels qu’il a ajoutés (12a)', () => {
+    const routeCall = { kind: 'model' as const, name: 'routeQuestion', durationMs: 40, tokenUsage: { promptTokens: 20, completionTokens: 5 } };
+    const searchCall = { kind: 'tool' as const, name: 'retriever.search', durationMs: 60 };
+    const draftCall1 = { kind: 'model' as const, name: 'generateObject#1', durationMs: 300, tokenUsage: { promptTokens: 500, completionTokens: 40 } };
+    const draftCall2 = { kind: 'model' as const, name: 'generateObject#2', durationMs: 250, tokenUsage: { promptTokens: 500, completionTokens: 60 } };
+
+    const events: TraceEvent[] = [
+      { node: 'route', timestampMs: 1_100, partialState: { codes: ['code-de-la-route'], calls: [routeCall] } },
+      { node: 'search', timestampMs: 1_200, partialState: { citations: [{}], calls: [routeCall, searchCall] } },
+      {
+        node: 'draft',
+        timestampMs: 1_500,
+        partialState: { reponse: { confiance: 'elevee' }, draftAttempts: 2, calls: [routeCall, searchCall, draftCall1, draftCall2] },
+      },
+    ];
+    const trace = buildExecutionTrace(baseInput({ events, endedAtMs: 1_500 }));
+
+    expect(trace.steps[0]?.calls).toEqual([routeCall]);
+    expect(trace.steps[1]?.calls).toEqual([searchCall]);
+    expect(trace.steps[2]?.calls).toEqual([draftCall1, draftCall2]);
+  });
+
+  it('omet calls plutôt que [] quand un nœud n’a touché aucun appel (branche d’échec)', () => {
+    const events: TraceEvent[] = [{ node: 'search', timestampMs: 1_100, partialState: { citations: [] } }];
+    const trace = buildExecutionTrace(baseInput({ events, endedAtMs: 1_100 }));
+
+    expect('calls' in (trace.steps[0] ?? {})).toBe(false);
+  });
 });

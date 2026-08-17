@@ -121,4 +121,35 @@ describe('ExecutionTrace', () => {
     const { traceId: _omis, ...sansTraceId } = traceValide;
     expect(ExecutionTrace.safeParse(sansTraceId).success).toBe(false);
   });
+
+  it('accepte un step avec le détail des appels individuels (12a)', () => {
+    const avecCalls = {
+      ...traceValide,
+      steps: [
+        {
+          node: 'draft',
+          durationMs: 890,
+          summary: { confiance: 'elevee', draftAttempts: 2 },
+          calls: [
+            { kind: 'model', name: 'generateObject#1', durationMs: 400, tokenUsage: { promptTokens: 600, completionTokens: 40 } },
+            { kind: 'model', name: 'generateObject#2', durationMs: 490, tokenUsage: { promptTokens: 600, completionTokens: 110 } },
+          ],
+        },
+      ],
+    };
+    expect(ExecutionTrace.safeParse(avecCalls).success).toBe(true);
+  });
+
+  it('accepte un step sans calls (traces persistées avant 12a)', () => {
+    const sansCalls = { ...traceValide, steps: [{ node: 'route', durationMs: 120, summary: {} }] };
+    expect(ExecutionTrace.safeParse(sansCalls).success).toBe(true);
+  });
+
+  it('rejette un appel outil avec un kind inconnu', () => {
+    const invalide = {
+      ...traceValide,
+      steps: [{ node: 'search', durationMs: 340, summary: {}, calls: [{ kind: 'reseau', name: 'x', durationMs: 10 }] }],
+    };
+    expect(ExecutionTrace.safeParse(invalide).success).toBe(false);
+  });
 });

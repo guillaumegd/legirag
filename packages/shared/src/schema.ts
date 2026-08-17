@@ -77,6 +77,24 @@ export const ReponseStructuree = ReponseStructureeObjet.refine(
 });
 export type ReponseStructuree = z.infer<typeof ReponseStructuree>;
 
+const ExecutionTraceTokenUsage = z.object({
+  promptTokens: z.number().int().nonnegative(),
+  completionTokens: z.number().int().nonnegative(),
+});
+
+// Item 12a - le détail des appels individuels faits pendant une seule
+// exécution d'un nœud (route: un appel modèle ; draft: un appel modèle par
+// tentative, y compris les tentatives ratées ; search/followRenvois: leurs
+// appels DB/retriever) - optionnel pour rester lisible par les traces
+// persistées avant 12a, qui n'ont jamais porté ce détail.
+export const ExecutionTraceCall = z.object({
+  kind: z.enum(['model', 'tool']),
+  name: z.string().min(1),
+  durationMs: z.number().int().nonnegative(),
+  tokenUsage: ExecutionTraceTokenUsage.optional(),
+});
+export type ExecutionTraceCall = z.infer<typeof ExecutionTraceCall>;
+
 // Item 11b - un pas du graphe fixe (route/search/draft/followRenvois), pas
 // un appel outil individuel : la chaîne fixe (note item 9) ne fait aucun
 // choix d'outil dynamique, donc "tool call" ici = une exécution de nœud.
@@ -88,6 +106,7 @@ export const ExecutionTraceStep = z.object({
   node: z.string().min(1),
   durationMs: z.number().int().nonnegative(),
   summary: z.record(z.string(), z.unknown()),
+  calls: z.array(ExecutionTraceCall).optional(),
 });
 export type ExecutionTraceStep = z.infer<typeof ExecutionTraceStep>;
 
@@ -102,12 +121,7 @@ export const ExecutionTrace = z.object({
   dateReference: z.string().date(),
   codes: z.array(z.string()).optional(),
   steps: z.array(ExecutionTraceStep),
-  tokenUsage: z
-    .object({
-      promptTokens: z.number().int().nonnegative(),
-      completionTokens: z.number().int().nonnegative(),
-    })
-    .optional(),
+  tokenUsage: ExecutionTraceTokenUsage.optional(),
   totalDurationMs: z.number().int().nonnegative(),
   createdAt: z.string().min(1),
 });

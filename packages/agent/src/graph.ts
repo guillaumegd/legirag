@@ -8,7 +8,7 @@ import { SUBDIVISION_ARTICLE_ENTIER, toCitation } from './citation.js';
 import { demanderALHumain } from './demander-a-l-humain.js';
 import { routerQuestion } from './router-question.js';
 import { ReponseStructureeIndexee, type RouterQuestionOutput } from './schema.js';
-import { AgentStateAnnotation, type AgentState, type TokenUsage } from './state.js';
+import { AgentStateAnnotation, type AgentCall, type AgentState, type TokenUsage } from './state.js';
 import { suivreRenvoi, type SplitRenvois } from './suivre-renvoi.js';
 
 // Coût du routeur volontairement exclu (routerQuestion renvoie
@@ -22,7 +22,23 @@ export function addUsage(a: TokenUsage | undefined, b: TokenUsage | undefined): 
   return { promptTokens: left.promptTokens + right.promptTokens, completionTokens: left.completionTokens + right.completionTokens };
 }
 
-type RouteQuestion = (question: string, model?: LanguageModel, now?: Date) => Promise<RouterQuestionOutput>;
+// Item 12a : ajoute un appel à la liste accumulée sur l'état (voir la note
+// dans state.ts) - un seul point pour ce motif répété dans route/search/
+// draft/followRenvois.
+export function appendCall(existing: AgentCall[] | undefined, call: AgentCall): AgentCall[] {
+  return [...(existing ?? []), call];
+}
+
+// usage optionnel : le contrat verrouillé RouterQuestionOutput (§5.3, 9b)
+// reste inchangé (c'est le schéma que le modèle doit produire) - routerQuestion
+// renvoie en plus son propre usage, à côté, uniquement pour que route puisse
+// tracer son appel (12a). Toujours absent côté cap de coût (state.tokenUsage/
+// MAX_DAILY_TOKENS) : cette exclusion-là reste celle décidée en 9b.
+type RouteQuestion = (
+  question: string,
+  model?: LanguageModel,
+  now?: Date,
+) => Promise<RouterQuestionOutput & { usage?: TokenUsage }>;
 type SuivreRenvoiFn = (articleId: string) => Promise<SplitRenvois>;
 
 const TOP_K = 10;
@@ -173,9 +189,16 @@ export function buildFixedChainGraph(
   // seul nœud draft (ex. la branche abstention) fournit volontairement
   // cassé - voir "Scope decision: why a third injectable dependency" (8b).
   async function route(state: AgentState): Promise<Partial<AgentState>> {
+    const startedAtMs = Date.now();
     try {
-      const { codes } = await routeQuestion(state.question, model);
-      return { codes };
+      const { codes, usage } = await routeQuestion(state.question, model);
+      const call: AgentCall = {
+        kind: 'model',
+        name: 'routeQuestion',
+        durationMs: Date.now() - startedAtMs,
+        ...(usage !== undefined ? { tokenUsage: usage } : {}),
+      };
+      return { codes, calls: appendCall(state.calls, call) };
     } catch (error) {
       // Le routage n'est qu'une aide de précision - search tourne déjà sans
       // filtre de code quand state.codes est undefined, donc un échec ici
@@ -183,29 +206,38 @@ export function buildFixedChainGraph(
       // le graphe (9c) ; si ça ne suffit pas non plus, le chemin "aucun
       // résultat" de search reprend la main.
       console.error('route : routeQuestion a échoué, recherche non filtrée par code.', error);
-      return { codes: undefined };
+      const call: AgentCall = { kind: 'model', name: 'routeQuestion', durationMs: Date.now() - startedAtMs };
+      return { codes: undefined, calls: appendCall(state.calls, call) };
     }
   }
 
   async function search(state: AgentState): Promise<Partial<AgentState>> {
     try {
+      const retrieverStartedAtMs = Date.now();
       const chunks = await retriever.search({
         texte: state.question,
         dateReference: state.dateReference,
         topK: TOP_K,
         ...(state.codes ? { codes: state.codes } : {}),
       });
+      let calls = appendCall(state.calls, {
+        kind: 'tool',
+        name: 'retriever.search',
+        durationMs: Date.now() - retrieverStartedAtMs,
+      });
 
       if (chunks.length === 0) {
-        return { citations: [], renvoiIterations: 0 };
+        return { citations: [], renvoiIterations: 0, calls };
       }
 
       const sources = chunks.map((chunk) => ({
         articleId: chunk.articleIdentifier,
         ...(chunk.subdivisionLabel !== undefined ? { subdivisionLabel: chunk.subdivisionLabel } : {}),
       }));
+      const fetchStartedAtMs = Date.now();
       const citations = (await fetchArticlesForCitation(sources, state.dateReference)).map(toCitation);
-      return { citations, renvoiIterations: 0 };
+      calls = appendCall(calls, { kind: 'tool', name: 'fetchArticlesForCitation', durationMs: Date.now() - fetchStartedAtMs });
+      return { citations, renvoiIterations: 0, calls };
     } catch (error) {
       // Ni retriever.search ni fetchArticlesForCitation n'ont de repli
       // raisonnable (recherche/DB indisponible) - traité comme "rien
@@ -229,13 +261,16 @@ export function buildFixedChainGraph(
         ),
         draftAttempts: draftAttemptsSoFar,
         tokenUsage: state.tokenUsage,
+        calls: state.calls,
       };
     }
 
     let draftAttempts = draftAttemptsSoFar;
     let tokenUsage = state.tokenUsage;
+    let calls = state.calls;
 
     for (let attempt = 1; attempt <= MAX_DRAFT_ATTEMPTS; attempt++) {
+      const startedAtMs = Date.now();
       try {
         const { object, usage } = await generateObject({
           model,
@@ -244,12 +279,19 @@ export function buildFixedChainGraph(
         });
         draftAttempts++;
         tokenUsage = addUsage(tokenUsage, usage);
+        calls = appendCall(calls, {
+          kind: 'model',
+          name: `generateObject#${attempt}`,
+          durationMs: Date.now() - startedAtMs,
+          tokenUsage: usage,
+        });
 
         if (citationsIndicesValides(object, state.citations.length)) {
           return {
             reponse: toReponseStructuree(object, state.citations, state.traceId, state.dateReference),
             draftAttempts,
             tokenUsage,
+            calls,
           };
         }
 
@@ -262,9 +304,17 @@ export function buildFixedChainGraph(
         // une abstention - observé en direct pendant 8a) porte encore son
         // propre usage - le seul cas d'erreur où le coût réel de la
         // tentative ratée est récupérable plutôt que perdu (9b).
+        let attemptUsage: TokenUsage | undefined;
         if (NoObjectGeneratedError.isInstance(error) && error.usage !== undefined) {
           tokenUsage = addUsage(tokenUsage, error.usage);
+          attemptUsage = error.usage;
         }
+        calls = appendCall(calls, {
+          kind: 'model',
+          name: `generateObject#${attempt}`,
+          durationMs: Date.now() - startedAtMs,
+          ...(attemptUsage !== undefined ? { tokenUsage: attemptUsage } : {}),
+        });
         // Un échec de generateObject lui-même doit être retenté comme un
         // index invalide, pas remonter et faire planter tout le run : la
         // vérification existe justement pour que le pire cas soit une
@@ -280,7 +330,7 @@ export function buildFixedChainGraph(
     // jamais écraser une réponse déjà valide - seul le tout premier échec,
     // sans réponse antérieure, mérite une abstention.
     if (state.reponse !== undefined) {
-      return { draftAttempts, tokenUsage };
+      return { draftAttempts, tokenUsage, calls };
     }
 
     return {
@@ -292,6 +342,7 @@ export function buildFixedChainGraph(
       ),
       draftAttempts,
       tokenUsage,
+      calls,
     };
   }
 
@@ -303,22 +354,32 @@ export function buildFixedChainGraph(
     }
 
     try {
+      const suivreStartedAtMs = Date.now();
       const { renvois } = await suivreRenvoiFn(sourceArticleId);
+      let calls = appendCall(state.calls, {
+        kind: 'tool',
+        name: 'suivreRenvoiFn',
+        durationMs: Date.now() - suivreStartedAtMs,
+      });
+
       const nouveaux = renvoisNonCouverts(renvois, state.citations);
       if (nouveaux.length === 0) {
-        return { newCitationsFound: 0, renvoiIterations };
+        return { newCitationsFound: 0, renvoiIterations, calls };
       }
 
       const sources = nouveaux.map((r) => ({
         articleId: r.cibleArticleId,
         ...(r.cibleSubdivision !== undefined ? { subdivisionLabel: r.cibleSubdivision } : {}),
       }));
+      const fetchStartedAtMs = Date.now();
       const citationsNouvelles = (await fetchArticlesForCitation(sources, state.dateReference)).map(toCitation);
+      calls = appendCall(calls, { kind: 'tool', name: 'fetchArticlesForCitation', durationMs: Date.now() - fetchStartedAtMs });
 
       return {
         citations: [...state.citations, ...citationsNouvelles],
         newCitationsFound: citationsNouvelles.length,
         renvoiIterations,
+        calls,
       };
     } catch (error) {
       // draft a déjà produit une reponse valide à ce stade (afterDraft ne

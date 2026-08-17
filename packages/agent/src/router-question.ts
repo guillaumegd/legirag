@@ -4,6 +4,7 @@ import type { Client } from 'pg';
 import { bedrockProvider } from '@legirag/shared';
 import { createDatabaseClient, formatDateReference } from '@legirag/retrieval';
 import { RouterQuestionOutput } from './schema.js';
+import type { TokenUsage } from './state.js';
 
 export interface CodeDisponible {
   codeSlug: string;
@@ -50,11 +51,15 @@ export function filterKnownCodes(modelCodes: string[], available: CodeDisponible
   return modelCodes.filter((code) => known.has(code));
 }
 
+// usage renvoyé à côté du contrat verrouillé RouterQuestionOutput (§5.3, 9b) -
+// seulement pour que route (graph.ts, 12a) puisse tracer cet appel modèle,
+// jamais ajouté à state.tokenUsage/MAX_DAILY_TOKENS (exclusion du coût du
+// routeur toujours en vigueur, décidée en 9b).
 export async function routerQuestion(
   question: string,
   model: LanguageModel = bedrockProvider.volume(),
   now: Date = new Date(),
-): Promise<RouterQuestionOutput> {
+): Promise<RouterQuestionOutput & { usage?: TokenUsage }> {
   const client = createDatabaseClient();
   await client.connect();
   let available: CodeDisponible[];
@@ -83,7 +88,7 @@ export async function routerQuestion(
     }
   }
 
-  const { object } = await generateObject({ model, schema: RouterQuestionOutput, prompt: buildRouterPrompt(question, available) });
+  const { object, usage } = await generateObject({ model, schema: RouterQuestionOutput, prompt: buildRouterPrompt(question, available) });
   const codes = filterKnownCodes(object.codes, available);
 
   // Le modèle a proposé au moins un code, mais aucun ne correspond à la liste
@@ -95,8 +100,9 @@ export async function routerQuestion(
       codes: [],
       confiance: 0,
       raisonnement: `${object.raisonnement} (aucun code proposé par le modèle ne correspond à un code connu)`,
+      usage,
     };
   }
 
-  return { ...object, codes };
+  return { ...object, codes, usage };
 }

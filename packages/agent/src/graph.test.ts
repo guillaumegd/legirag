@@ -174,6 +174,7 @@ const ETAT_BASE: AgentState = {
   reponse: undefined,
   draftAttempts: 0,
   tokenUsage: undefined,
+  calls: [],
 };
 
 describe('addUsage', () => {
@@ -379,5 +380,166 @@ describe('buildFixedChainGraph - récupération après échec injecté (9c)', ()
     expect(result.reponse?.verdict).toBe('verdict de test');
     expect(result.reponse?.regle_principale?.article_identifier).toBe(CITATION_CONNUE.article_identifier);
     expect(result.renvoiIterations).toBe(1);
+  });
+});
+
+const suivreRenvoiSansResultat = async (): Promise<SplitRenvois> => ({ renvois: [], nonResolus: [] });
+
+describe('buildFixedChainGraph - traçage par appel individuel (12a)', () => {
+  it('route : consigne son propre appel modèle avec son usage', async () => {
+    const search = vi.fn<Retriever['search']>(async () => []);
+    const routeurAvecUsage = async () => ({
+      codes: ['code-de-la-route'],
+      confiance: 0.9,
+      raisonnement: 'test',
+      usage: { promptTokens: 80, completionTokens: 20 },
+    });
+
+    const graph = buildFixedChainGraph({ search }, modelNonAppele, routeurAvecUsage);
+
+    const result = await graph.invoke({
+      question: 'question quelconque',
+      dateReference: new Date('2026-08-17'),
+      codes: undefined,
+      traceId: 'trace-test-12a-route',
+      reponse: undefined,
+    });
+
+    const routeCall = result.calls?.find((c) => c.name === 'routeQuestion');
+    expect(routeCall).toMatchObject({ kind: 'model', tokenUsage: { promptTokens: 80, completionTokens: 20 } });
+
+    // search : branche "aucun résultat" - un seul appel outil, sans fetchArticlesForCitation.
+    const searchCalls = result.calls?.filter((c) => c.kind === 'tool');
+    expect(searchCalls).toEqual([expect.objectContaining({ name: 'retriever.search' })]);
+  });
+
+  it('draft : consigne un appel par tentative, y compris la tentative dont l’index de citation est invalide', async () => {
+    const articlePourCitation: ArticleForCitation = {
+      articleIdentifier: CITATION_CONNUE.article_identifier,
+      articleNum: '123',
+      code: CITATION_CONNUE.code,
+      etat: CITATION_CONNUE.etat,
+      dateDebut: CITATION_CONNUE.date_debut,
+      texteExact: CITATION_CONNUE.texte_exact,
+    };
+    vi.mocked(fetchArticlesForCitation).mockResolvedValueOnce([articlePourCitation]);
+
+    const draftIndexInvalide: ReponseStructureeIndexee = {
+      verdict: 'verdict de test',
+      regle_principale_index: 99,
+      textes_complementaires: [],
+      hors_perimetre: ['hors périmètre'],
+      confiance: 'elevee',
+    };
+    const draftValide: ReponseStructureeIndexee = {
+      verdict: 'verdict de test',
+      regle_principale_index: 0,
+      textes_complementaires: [],
+      hors_perimetre: ['hors périmètre'],
+      confiance: 'elevee',
+    };
+    vi.mocked(generateObject)
+      .mockResolvedValueOnce({
+        object: draftIndexInvalide,
+        usage: { promptTokens: 10, completionTokens: 5 },
+      } as unknown as Awaited<ReturnType<typeof generateObject>>)
+      .mockResolvedValueOnce({
+        object: draftValide,
+        usage: { promptTokens: 12, completionTokens: 8 },
+      } as unknown as Awaited<ReturnType<typeof generateObject>>);
+
+    const retrieverAvecResultat: Retriever = {
+      async search(): Promise<Chunk[]> {
+        return [{ id: 1, articleIdentifier: CITATION_CONNUE.article_identifier, contenu: 'texte' }];
+      },
+    };
+
+    const graph = buildFixedChainGraph(retrieverAvecResultat, {} as LanguageModel, routeurFactice, suivreRenvoiSansResultat);
+
+    const result = await graph.invoke({
+      question: 'question quelconque',
+      dateReference: new Date('2026-08-17'),
+      codes: undefined,
+      traceId: 'trace-test-12a-draft',
+      reponse: undefined,
+    });
+
+    const draftCalls = result.calls?.filter((c) => c.name.startsWith('generateObject'));
+    expect(draftCalls).toHaveLength(2);
+    expect(draftCalls?.[0]).toMatchObject({ kind: 'model', name: 'generateObject#1', tokenUsage: { promptTokens: 10, completionTokens: 5 } });
+    expect(draftCalls?.[1]).toMatchObject({ kind: 'model', name: 'generateObject#2', tokenUsage: { promptTokens: 12, completionTokens: 8 } });
+    expect(result.reponse?.confiance).toBe('elevee');
+
+    // search (résultat non vide) et followRenvois (branche "rien de nouveau") ont chacun consigné leur(s) appel(s).
+    const toolCallNames = result.calls?.filter((c) => c.kind === 'tool').map((c) => c.name);
+    expect(toolCallNames).toEqual(['retriever.search', 'fetchArticlesForCitation', 'suivreRenvoiFn']);
+  });
+
+  it('followRenvois : consigne fetchArticlesForCitation en plus de suivreRenvoiFn quand de nouveaux renvois sont trouvés', async () => {
+    const articlePourCitation: ArticleForCitation = {
+      articleIdentifier: CITATION_CONNUE.article_identifier,
+      articleNum: '123',
+      code: CITATION_CONNUE.code,
+      etat: CITATION_CONNUE.etat,
+      dateDebut: CITATION_CONNUE.date_debut,
+      texteExact: CITATION_CONNUE.texte_exact,
+    };
+    const articleNouveau: ArticleForCitation = {
+      articleIdentifier: 'LEGIARTI-NOUVEAU',
+      articleNum: '456',
+      code: 'Code de la route',
+      etat: 'VIGUEUR',
+      dateDebut: '2020-01-01',
+      texteExact: 'texte nouveau',
+    };
+    vi.mocked(fetchArticlesForCitation)
+      .mockResolvedValueOnce([articlePourCitation])
+      .mockResolvedValueOnce([articleNouveau]);
+
+    const draftReussi: ReponseStructureeIndexee = {
+      verdict: 'verdict de test',
+      regle_principale_index: 0,
+      textes_complementaires: [],
+      hors_perimetre: ['hors périmètre'],
+      confiance: 'elevee',
+    };
+    // mockResolvedValue (pas Once) : le redraft déclenché par newCitationsFound
+    // > 0 rappelle draft une seconde fois (afterFollowRenvois), qui doit
+    // retrouver un draft réussi plutôt qu'un mock non configuré.
+    vi.mocked(generateObject).mockResolvedValue({
+      object: draftReussi,
+      usage: { promptTokens: 10, completionTokens: 5 },
+    } as unknown as Awaited<ReturnType<typeof generateObject>>);
+
+    const retrieverAvecResultat: Retriever = {
+      async search(): Promise<Chunk[]> {
+        return [{ id: 1, articleIdentifier: CITATION_CONNUE.article_identifier, contenu: 'texte' }];
+      },
+    };
+    const suivreRenvoiAvecNouveau = async (): Promise<SplitRenvois> => ({ renvois: [RENVOI_NOUVEAU], nonResolus: [] });
+
+    const graph = buildFixedChainGraph(retrieverAvecResultat, {} as LanguageModel, routeurFactice, suivreRenvoiAvecNouveau);
+
+    const result = await graph.invoke({
+      question: 'question quelconque',
+      dateReference: new Date('2026-08-17'),
+      codes: undefined,
+      traceId: 'trace-test-12a-follow-renvois',
+      reponse: undefined,
+    });
+
+    // Passe 1 de followRenvois trouve LEGIARTI-NOUVEAU (nouveau) -> redraft ->
+    // passe 2 de followRenvois retrouve le même renvoi, mais sa cible est
+    // maintenant déjà connue -> renvoisNonCouverts l'écarte, pas de second
+    // fetchArticlesForCitation depuis followRenvois.
+    const toolCallNames = result.calls?.filter((c) => c.kind === 'tool').map((c) => c.name);
+    expect(toolCallNames).toEqual([
+      'retriever.search',
+      'fetchArticlesForCitation',
+      'suivreRenvoiFn',
+      'fetchArticlesForCitation',
+      'suivreRenvoiFn',
+    ]);
+    expect(result.renvoiIterations).toBe(2);
   });
 });

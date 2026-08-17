@@ -9,6 +9,19 @@ export interface TokenUsage {
   completionTokens: number;
 }
 
+// Détail par appel individuel (item 12a) - accumulé sur tout le run comme
+// citations/tokenUsage, pas juste le delta d'un nœud : route/search/draft/
+// followRenvois sont des fermetures privées à buildFixedChainGraph,
+// seulement observables via un graph.invoke(...) complet (voir
+// graph.test.ts), donc l'état final doit porter la liste entière plutôt
+// qu'un delta que rien ne pourrait relire après coup.
+export interface AgentCall {
+  kind: 'model' | 'tool';
+  name: string;
+  durationMs: number;
+  tokenUsage?: TokenUsage;
+}
+
 // Forme d'état durable du graphe LangGraph.js - pas encore un contrat
 // cross-package : les champs peuvent bouger tant qu'ils restent internes à
 // packages/agent. citations/renvoiIterations/newCitationsFound sont la
@@ -25,6 +38,7 @@ export const AgentStateAnnotation = Annotation.Root({
   reponse: Annotation<ReponseStructuree | undefined>(),
   draftAttempts: Annotation<number>(),
   tokenUsage: Annotation<TokenUsage | undefined>(),
+  calls: Annotation<AgentCall[]>(),
 });
 
 export type AgentState = typeof AgentStateAnnotation.State;

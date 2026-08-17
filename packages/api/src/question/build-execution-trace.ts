@@ -1,4 +1,4 @@
-import type { TokenUsage } from '@legirag/agent';
+import type { AgentCall, TokenUsage } from '@legirag/agent';
 import { ExecutionTrace } from '@legirag/shared';
 
 export interface TraceEvent {
@@ -42,6 +42,21 @@ function summarizeNode(node: string, partialState: Record<string, unknown>): Rec
   }
 }
 
+// Item 12a : chaque événement porte state.calls dans son intégralité
+// jusque-là (même accumulation manuelle que citations/tokenUsage sur
+// AgentState - voir la note dans packages/agent/src/state.ts), pas
+// seulement les appels ajoutés par ce nœud. On retrouve la part propre à
+// chaque pas en suivant un compteur courant, même principe que
+// previousTimestampMs ci-dessous pour durationMs. Un nœud dont la branche
+// exécutée n'a touché aucun appel (ex. search/followRenvois sur leur chemin
+// d'échec) omet complètement `calls` - traité comme "rien ajouté ici",
+// jamais comme une régression du compteur.
+function callsAddedByStep(partialState: Record<string, unknown>, previousCallsCount: number): AgentCall[] {
+  const calls = partialState.calls;
+  if (!Array.isArray(calls)) return [];
+  return (calls as AgentCall[]).slice(previousCallsCount);
+}
+
 // durationMs par étape est une approximation par delta d'horloge murale
 // entre deux événements 'updates' consécutifs du stream LangGraph.js (pas
 // une instrumentation interne au nœud) - suffisant pour le besoin "minimal"
@@ -50,13 +65,17 @@ function summarizeNode(node: string, partialState: Record<string, unknown>): Rec
 export function buildExecutionTrace(input: BuildExecutionTraceInput): ExecutionTrace {
   const steps: ExecutionTrace['steps'] = [];
   let previousTimestampMs = input.startedAtMs;
+  let previousCallsCount = 0;
   for (const event of input.events) {
+    const calls = callsAddedByStep(event.partialState, previousCallsCount);
     steps.push({
       node: event.node,
       durationMs: event.timestampMs - previousTimestampMs,
       summary: summarizeNode(event.node, event.partialState),
+      ...(calls.length > 0 ? { calls } : {}),
     });
     previousTimestampMs = event.timestampMs;
+    previousCallsCount += calls.length;
   }
 
   return ExecutionTrace.parse({

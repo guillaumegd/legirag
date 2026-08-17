@@ -216,23 +216,41 @@ below closes out what's left of that foundation before data work starts.
   subset of everyday codes, wire up the time-travel lookup and its date
   filtering, and calibrate the abstention threshold so the system declines
   out-of-scope questions instead of guessing
-  - Note (from 4c): `article_visible()`'s Postgres RLS function currently
-    hides any `ABROGE` row unconditionally, with no exception - a deliberate
-    interim simplification since no historical/abrogated rows exist in the
-    corpus yet. This item must revisit that rule so a `date_reference` in the
-    past can surface the version that was actually in force then (with the
-    answer clearly labeled as no longer current), instead of hiding it
-    outright. See 4c's spec/history for the exact predicate.
-  - Note (from 4c, checked 2026-08-16): DB size is a real constraint here,
-    not a hypothetical one. The project is already at 353 MB of Supabase's
-    500 MB free-tier cap (70%) with only the 5 demo codes and *zero* history
-    rows - `chunks` (embeddings) is the dominant cost, not raw text. Of the 5
-    demo codes, `code-general-des-impots` is the heaviest by a clear margin
-    (7 777 of ~21 300 chunks, ~30 MB of vectors alone - roughly double the
-    smallest code). Before or while adding history rows here, re-check real
-    sizes and consider dropping `code-general-des-impots` (or narrowing the
-    demo set further) rather than assuming the ~150-250 MB headroom 4b
-    originally estimated is still accurate.
+  - [ ] 10a. **Historical-version acquisition, scoping, and load** - re-check
+    real DB size and pick (or narrow) the `palier: 'profondeur'` code
+    subset, acquire a genuine full-version-history source for that subset
+    (COLD only ever snapshots current in-force text - confirmed 2026-08-17
+    in `to-article.ts` - so this needs a different source than 2a used),
+    parse each past version into the existing `Article`/`Subdivision` shape,
+    and load the extra rows into `articles`/`subdivisions` only, with no
+    `chunks`/embeddings for historical rows
+    - Note (from 4c, re-confirmed live 2026-08-17): 353 MB of Supabase's
+      500 MB free-tier cap already used by the 5 demo codes with zero
+      history rows; `chunks` (embeddings) is the dominant cost, not raw
+      text - `code-general-des-impots` remains the heaviest of the 5
+      (7 777 chunks, ~30 MB of vectors, roughly double the smallest code).
+      Re-verify sizes again at the start of this step; dropping
+      `code-general-des-impots` or narrowing further is the likely first
+      move if space is tight even for text-only history rows.
+  - [ ] 10b. **RLS time-travel predicate** - revise `article_visible()` so a
+    past `app.date_reference` surfaces the version that was actually in
+    force then (clearly labeled as no longer current) instead of
+    unconditionally hiding `ABROGE` rows, with a migration and an RLS test
+    proving both the current behavior (today's date still hides `ABROGE`)
+    and the new behavior (a past date surfaces the version in force then)
+    - Note (from 4c): `article_visible()` currently hides any `ABROGE` row
+      unconditionally - a deliberate interim rule with no historical rows in
+      the corpus yet. This sub-feature is what must revisit it. See 4c's
+      spec/history for the exact predicate being replaced.
+  - [ ] 10c. **Time-travel lookup wiring** - make the `version_a_la_date`
+    tool (stubbed at 7d) real: a dated point-in-time lookup by
+    `code_slug`/`article_num`/date returning the version in force then plus
+    its neighboring versions, wired through the agent/API in place of the
+    stub
+  - [ ] 10d. **Abstention threshold calibration** - using the 9a-9c eval
+    numbers, tune the confidence/abstention threshold so the system declines
+    out-of-scope or under-evidenced questions rather than guessing, and
+    document the chosen threshold and rationale
 - [x] 11. **Public API** - endpoints for asking a question (streamed
   response), reading a trace, and reading an article, validated end-to-end
   against the shared schemas, with per-request and daily cost caps, rate
@@ -258,6 +276,46 @@ below closes out what's left of that foundation before data work starts.
   suite wired into CI as a blocking regression check, event-driven
   reindexing, and the Terraform config able to provision the stack from
   scratch
+  - [x] 12a. **Per-tool and per-model-call tracing (cost, latency)** -
+    extend the execution trace beyond today's one-summary-per-graph-node
+    record (11b) to one entry per individual model call (route, each draft
+    attempt) and per tool/DB call (search, followRenvois), each with its own
+    duration and token usage
+    - Note (found while sizing, 2026-08-17): 9b deliberately excluded the
+      router's token usage from cost tracking ("draft carries the bulk of
+      the cost, so excluding the router doesn't meaningfully skew the
+      total" - `graph.ts`'s `addUsage` comment). This item's "each ... model
+      call" wording revisits that exclusion for tracing (not for the
+      `MAX_DAILY_TOKENS` cost cap itself, which can stay aggregate) - 12a
+      must decide explicitly whether to start recording router usage too,
+      not silently keep excluding it.
+    - Note: "cost" in this codebase means token counts, not a dollar figure
+      - `cost-guard.service.ts`'s cap is `MAX_DAILY_TOKENS`-based and there
+      is no per-model $ pricing table anywhere in the repo. 12a should keep
+      that convention (token usage per call) unless a $ estimate is
+      explicitly wanted, which would need a new pricing table first.
+  - [ ] 12b. **Evaluation suite as a blocking CI regression check** - wire
+    the `packages/eval` harness into CI as a check that fails the build on a
+    quality regression against a stored baseline
+    - Note: the harness makes real Supabase + Bedrock calls (cost and
+      latency per run) - running it on every PR the way lint/typecheck/test
+      already do may not be the right cadence. 12b should decide and
+      document the trigger (every PR, only retrieval/agent-path changes, a
+      schedule, manual dispatch) rather than default to "every push" by
+      inertia.
+  - [ ] 12c. **Event-driven reindexing on text updates** - when an article's
+    source text changes, automatically recompute its chunk(s)/embedding(s)
+    instead of requiring a manual full reload
+  - [ ] 12d. **Terraform provisioning the stack from scratch** - extend
+    `infra/` beyond today's provider-only skeleton (`providers.tf`,
+    `variables.tf`, `versions.tf`) to define the real resources (containers
+    for API/tool server/observability, database, secrets management) so
+    `terraform apply` on a clean account stands up the whole stack
+    - This sub-feature must stop before any real `terraform apply`,
+      remote state setup, or cloud resource creation without a separate
+      explicit approval in chat, same guardrail `/release` already follows
+      for deploys - writing the `.tf` config itself is fine, applying it
+      is not.
 - [ ] 13. **Front end and reliability case study** - the question/answer
   screen with the unfolding reference graph, the time-travel view, and the
   agent-trace view; an end-to-end smoke test of the full question-to-answer

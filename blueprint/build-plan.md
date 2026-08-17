@@ -238,6 +238,21 @@ below closes out what's left of that foundation before data work starts.
   against the shared schemas, with per-request and daily cost caps, rate
   limiting, and structured error handling; containerized and runnable
   standalone
+  - [x] 11a. **NestJS foundations and streamed question endpoint** -
+    bootstrap `packages/api` as a real NestJS app, wire `POST /question` to
+    the existing reasoning-agent graph, stream the answer as it's produced,
+    validate the final payload against `ReponseStructuree`, and expose a
+    `GET /health` check
+  - [ ] 11b. **Trace and article read endpoints** - a minimal execution-trace
+    record (routing decision, tool calls, timing) captured during a graph
+    run and persisted keyed by `trace_id`, plus `GET /trace/:trace_id` and
+    `GET /article/:article_identifier` read endpoints
+  - [ ] 11c. **Cost caps, rate limiting, structured errors** - per-request and
+    daily cost caps with a circuit breaker, per-IP rate limiting, and
+    consistent structured error responses across all three endpoints
+  - [ ] 11d. **Containerization and end-to-end validation** - Dockerfile,
+    runnable standalone, and a smoke test hitting all three endpoints in the
+    container
 - [ ] 12. **Observability and infrastructure automation** - request tracing
   down to each tool and model call with cost and latency, the evaluation
   suite wired into CI as a blocking regression check, event-driven

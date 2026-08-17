@@ -79,6 +79,9 @@ importers:
 
   packages/eval:
     dependencies:
+      '@legirag/agent':
+        specifier: workspace:*
+        version: link:../agent
       '@legirag/retrieval':
         specifier: workspace:*
         version: link:../retrieval

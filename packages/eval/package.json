@@ -9,12 +9,14 @@
     "build": "tsc -b",
     "typecheck": "tsc -b",
     "harness": "tsx --env-file=../../.env src/run-harness.ts",
+    "agent-harness": "tsx --env-file=../../.env src/run-agent-harness.ts",
     "build:naive-cache": "tsx --env-file=../../.env src/build-naive-cache.ts",
     "naive-baseline": "tsx --env-file=../../.env src/run-naive-baseline.ts",
     "vector-only": "tsx --env-file=../../.env src/run-vector-only.ts",
     "hybrid-capped": "tsx --env-file=../../.env src/run-hybrid-capped.ts"
   },
   "dependencies": {
+    "@legirag/agent": "workspace:*",
     "@legirag/shared": "workspace:*",
     "@legirag/retrieval": "workspace:*",
     "pg": "^8.23.0",

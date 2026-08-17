@@ -1,10 +1,14 @@
 import { END } from '@langchain/langgraph';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { generateObject } from 'ai';
 import type { LanguageModel } from 'ai';
 import type { Chunk, Citation, ReponseStructuree, Renvoi, RequeteRecherche, Retriever } from '@legirag/shared';
+import { fetchArticlesForCitation, type ArticleForCitation } from '@legirag/retrieval';
 import type { AgentState } from './state.js';
 import type { ReponseStructureeIndexee } from './schema.js';
+import type { SplitRenvois } from './suivre-renvoi.js';
 import {
+  addUsage,
   afterDraft,
   afterFollowRenvois,
   buildFixedChainGraph,
@@ -13,6 +17,27 @@ import {
   renvoisNonCouverts,
   toReponseStructuree,
 } from './graph.js';
+
+// generateObject seul est mocké (le test 9c sur followRenvois a besoin d'un
+// draft réussi sans appeler un vrai modèle) - NoObjectGeneratedError reste
+// la vraie classe, graph.ts s'appuie sur isInstance().
+vi.mock('ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('ai')>();
+  return { ...actual, generateObject: vi.fn() };
+});
+
+// fetchArticlesForCitation seul est mocké (search l'appelle en dur, pas
+// injectable via buildFixedChainGraph) - évite un vrai appel DB dès qu'un
+// test a besoin que search trouve des chunks (9c, followRenvois).
+vi.mock('@legirag/retrieval', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@legirag/retrieval')>();
+  return { ...actual, fetchArticlesForCitation: vi.fn() };
+});
+
+afterEach(() => {
+  vi.mocked(generateObject).mockReset();
+  vi.mocked(fetchArticlesForCitation).mockReset();
+});
 
 const emptyRetriever: Retriever = {
   async search(): Promise<Chunk[]> {
@@ -147,7 +172,30 @@ const ETAT_BASE: AgentState = {
   renvoiIterations: 0,
   newCitationsFound: 0,
   reponse: undefined,
+  draftAttempts: 0,
+  tokenUsage: undefined,
 };
+
+describe('addUsage', () => {
+  it('additionne deux usages définis', () => {
+    expect(addUsage({ promptTokens: 100, completionTokens: 20 }, { promptTokens: 50, completionTokens: 10 })).toEqual({
+      promptTokens: 150,
+      completionTokens: 30,
+    });
+  });
+
+  it('traite undefined comme "rien à ajouter" côté a', () => {
+    expect(addUsage(undefined, { promptTokens: 50, completionTokens: 10 })).toEqual({ promptTokens: 50, completionTokens: 10 });
+  });
+
+  it('traite undefined comme "rien à ajouter" côté b', () => {
+    expect(addUsage({ promptTokens: 50, completionTokens: 10 }, undefined)).toEqual({ promptTokens: 50, completionTokens: 10 });
+  });
+
+  it('renvoie zéro quand les deux sont undefined', () => {
+    expect(addUsage(undefined, undefined)).toEqual({ promptTokens: 0, completionTokens: 0 });
+  });
+});
 
 describe('afterDraft', () => {
   it('END quand la borne des itérations est atteinte', () => {
@@ -239,5 +287,97 @@ describe('toReponseStructuree', () => {
     expect(reponse.textes_complementaires).toEqual([{ ...CITATION_DEUX, motif_presence: 'exception' }]);
     expect(reponse.date_reference).toBe('2026-08-17');
     expect(reponse.trace_id).toBe('trace-x');
+  });
+});
+
+describe('buildFixedChainGraph - récupération après échec injecté (9c)', () => {
+  it("search : un échec de retriever.search dégrade en abstention plutôt que de faire planter l'invoke", async () => {
+    const retrieverCasse: Retriever = {
+      async search() {
+        throw new Error('connexion recherche indisponible');
+      },
+    };
+
+    const graph = buildFixedChainGraph(retrieverCasse, modelNonAppele, routeurFactice);
+
+    const result = await graph.invoke({
+      question: 'question quelconque',
+      dateReference: new Date('2026-08-17'),
+      codes: undefined,
+      traceId: 'trace-test-9c-search',
+      reponse: undefined,
+    });
+
+    expect(result.citations).toEqual([]);
+    expect(result.reponse?.confiance).toBe('abstention');
+  });
+
+  it('route : un échec de routeQuestion dégrade vers une recherche non filtrée plutôt que de faire planter l’invoke', async () => {
+    const search = vi.fn<Retriever['search']>(async () => []);
+    const routeurCasse = async (): Promise<never> => {
+      throw new Error('routage indisponible');
+    };
+
+    const graph = buildFixedChainGraph({ search }, modelNonAppele, routeurCasse);
+
+    const result = await graph.invoke({
+      question: 'question quelconque',
+      dateReference: new Date('2026-08-17'),
+      codes: undefined,
+      traceId: 'trace-test-9c-route',
+      reponse: undefined,
+    });
+
+    expect(search).toHaveBeenCalledTimes(1);
+    const requete = search.mock.calls[0]?.[0] as RequeteRecherche;
+    expect(requete.codes).toBeUndefined();
+    expect(result.reponse?.confiance).toBe('abstention');
+  });
+
+  it('followRenvois : un échec de suivreRenvoiFn conserve la réponse déjà construite par draft plutôt que de faire planter l’invoke', async () => {
+    const articlePourCitation: ArticleForCitation = {
+      articleIdentifier: CITATION_CONNUE.article_identifier,
+      articleNum: '123',
+      code: CITATION_CONNUE.code,
+      etat: CITATION_CONNUE.etat,
+      dateDebut: CITATION_CONNUE.date_debut,
+      texteExact: CITATION_CONNUE.texte_exact,
+    };
+    vi.mocked(fetchArticlesForCitation).mockResolvedValueOnce([articlePourCitation]);
+
+    const draftReussi: ReponseStructureeIndexee = {
+      verdict: 'verdict de test',
+      regle_principale_index: 0,
+      textes_complementaires: [],
+      hors_perimetre: ['hors périmètre'],
+      confiance: 'elevee',
+    };
+    vi.mocked(generateObject).mockResolvedValueOnce({
+      object: draftReussi,
+      usage: { promptTokens: 10, completionTokens: 5 },
+    } as unknown as Awaited<ReturnType<typeof generateObject>>);
+
+    const retrieverAvecResultat: Retriever = {
+      async search(): Promise<Chunk[]> {
+        return [{ id: 1, articleIdentifier: CITATION_CONNUE.article_identifier, contenu: 'texte' }];
+      },
+    };
+    const suivreRenvoiCasse = async (): Promise<SplitRenvois> => {
+      throw new Error('suivi de renvoi indisponible');
+    };
+
+    const graph = buildFixedChainGraph(retrieverAvecResultat, {} as LanguageModel, routeurFactice, suivreRenvoiCasse);
+
+    const result = await graph.invoke({
+      question: 'question quelconque',
+      dateReference: new Date('2026-08-17'),
+      codes: undefined,
+      traceId: 'trace-test-9c-follow-renvois',
+      reponse: undefined,
+    });
+
+    expect(result.reponse?.verdict).toBe('verdict de test');
+    expect(result.reponse?.regle_principale?.article_identifier).toBe(CITATION_CONNUE.article_identifier);
+    expect(result.renvoiIterations).toBe(1);
   });
 });

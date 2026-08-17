@@ -163,11 +163,54 @@ below closes out what's left of that foundation before data work starts.
   - [x] 8d. **Verification and abstention** - code-level rejection of any
     citation not backed by an actually-retrieved or actually-resolved
     source, the abstention/escalade path, and the graph's stop criteria
-- [ ] 9. **Agent quality evaluation** - run the full question set through the
+- [x] 9. **Agent quality evaluation** - run the full question set through the
   agent and measure routing accuracy, cross-reference coverage, tool
   selection accuracy, turns and cost per question, recovery after an
   injected tool failure, and correct-abstention rate; tune the loop's stop
   criteria against these numbers
+  - Note (from 8a-8d, confirmed while sizing 9a on 2026-08-17): item 8 built
+    a *fixed-chain* graph, not a dynamically tool-selecting one - node order
+    (route -> search -> draft -> followRenvois) never changes per question;
+    the only runtime decision the graph itself makes is whether the
+    cross-reference loop keeps running. "Tool selection accuracy" is
+    reinterpreted accordingly as "did the loop correctly decide to keep
+    following renvois vs. stop", folded into 9b alongside cross-reference
+    coverage rather than scored as a separate metric - there is no dynamic
+    tool choice to measure independently.
+  - [x] 9a. **Agent-level eval harness, routing accuracy, correct-abstention
+    rate** - a new eval script that runs the actual reasoning-agent graph
+    (not just the `Retriever`) end-to-end per question against live
+    Supabase + Bedrock, then scores whether the router chose the expected
+    code(s) and whether `confiance` correctly abstained (or didn't)
+  - [x] 9b. **Cross-reference coverage, loop-stop accuracy, turns and cost
+    per question** - scores whether `followRenvois` actually pulled in the
+    expected supplementary article for `renvoi_obligatoire` questions and
+    whether the loop stopped/continued correctly, plus per-question LLM
+    call count and token usage
+  - [x] 9c. **Failure-injection recovery and stop-criteria tuning** - inject
+    a broken retriever/model call for a subset of questions to confirm the
+    graph still produces a valid abstention instead of crashing, then use
+    9a-9c's combined numbers to decide whether `MAX_RENVOI_ITERATIONS` /
+    `MAX_DRAFT_ATTEMPTS` (`packages/agent/src/graph.ts`) need retuning,
+    documenting the decision either way; closes item 9
+  - **Follow-up flagged 2026-08-17, wanted fairly soon (not deferred to
+    post-MVP):** 9a's live run found the fixed chain never correctly abstains
+    on a `fausse_premisse` question (0/3 - see `blueprint/history/features/
+    09a-agent-eval-harness.md`'s Live verification result and 9c's own
+    "Out of scope" section). This is a `buildDraftPrompt`/model-reasoning
+    gap, not a stop-criteria or robustness issue, so 9c deliberately left it
+    alone. Likely **doesn't** need a new LangChain node - `draft` already
+    receives the question and the retrieved sources together in one prompt,
+    so the more direct first fix is asking the model, in that same prompt,
+    to check the question's premise against the sources before answering
+    (mirrors how `confiance: 'abstention'` is already triggered when no
+    source answers the question - a false premise is the same kind of "this
+    doesn't actually apply" case). A dedicated verification node (a second,
+    focused LLM call whose only job is checking the premise) is a valid
+    fallback if prompt-only tuning proves unreliable, but costs one extra
+    LLM call per question and more graph complexity - try the prompt route
+    first. Candidate for `/fix` rather than a new build-plan item, since it's
+    a correctness bug in already-built behavior, not a new capability.
 - [ ] 10. **Historical versions, time travel, and abstention** - extend the
   corpus with full version history (in force / amended / repealed) for a
   subset of everyday codes, wire up the time-travel lookup and its date

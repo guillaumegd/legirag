@@ -1,6 +1,14 @@
 import { Annotation } from '@langchain/langgraph';
 import type { Citation, ReponseStructuree } from '@legirag/shared';
 
+// Coût cumulé des appels generateObject de draft (item 9b) - undefined tant
+// qu'aucune tentative n'a été faite (le nœud draft renvoie l'état inchangé
+// dans son branchement "aucune citation", sans jamais initialiser à zéro).
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+}
+
 // Forme d'état durable du graphe LangGraph.js - pas encore un contrat
 // cross-package : les champs peuvent bouger tant qu'ils restent internes à
 // packages/agent. citations/renvoiIterations/newCitationsFound sont la
@@ -15,6 +23,8 @@ export const AgentStateAnnotation = Annotation.Root({
   renvoiIterations: Annotation<number>(),
   newCitationsFound: Annotation<number>(),
   reponse: Annotation<ReponseStructuree | undefined>(),
+  draftAttempts: Annotation<number>(),
+  tokenUsage: Annotation<TokenUsage | undefined>(),
 });
 
 export type AgentState = typeof AgentStateAnnotation.State;

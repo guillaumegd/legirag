@@ -6,5 +6,5 @@
     "composite": true
   },
   "include": ["src"],
-  "references": [{ "path": "../shared" }, { "path": "../retrieval" }]
+  "references": [{ "path": "../shared" }, { "path": "../retrieval" }, { "path": "../agent" }]
 }

@@ -1,5 +1,5 @@
 import { END, START, StateGraph } from '@langchain/langgraph';
-import { generateObject } from 'ai';
+import { generateObject, NoObjectGeneratedError } from 'ai';
 import type { LanguageModel } from 'ai';
 import type { Citation, Renvoi, ReponseStructuree, Retriever } from '@legirag/shared';
 import { ReponseStructuree as ReponseStructureeSchema, bedrockProvider } from '@legirag/shared';
@@ -8,10 +8,22 @@ import { SUBDIVISION_ARTICLE_ENTIER, toCitation } from './citation.js';
 import { demanderALHumain } from './demander-a-l-humain.js';
 import { routerQuestion } from './router-question.js';
 import { ReponseStructureeIndexee, type RouterQuestionOutput } from './schema.js';
-import { AgentStateAnnotation, type AgentState } from './state.js';
-import { suivreRenvoi } from './suivre-renvoi.js';
+import { AgentStateAnnotation, type AgentState, type TokenUsage } from './state.js';
+import { suivreRenvoi, type SplitRenvois } from './suivre-renvoi.js';
+
+// Coût du routeur volontairement exclu (routerQuestion renvoie
+// RouterQuestionOutput, un contrat verrouillé §5.3 - hors de question d'y
+// ajouter usage) - voir "Scope decision" (9b). draft porte l'essentiel du
+// coût (le prompt embarque les articles récupérés en entier), donc cette
+// exclusion ne fausse pas significativement le total.
+export function addUsage(a: TokenUsage | undefined, b: TokenUsage | undefined): TokenUsage {
+  const left = a ?? { promptTokens: 0, completionTokens: 0 };
+  const right = b ?? { promptTokens: 0, completionTokens: 0 };
+  return { promptTokens: left.promptTokens + right.promptTokens, completionTokens: left.completionTokens + right.completionTokens };
+}
 
 type RouteQuestion = (question: string, model?: LanguageModel, now?: Date) => Promise<RouterQuestionOutput>;
+type SuivreRenvoiFn = (articleId: string) => Promise<SplitRenvois>;
 
 const TOP_K = 10;
 // Bornée volontairement petite - suivre_renvoi ne fait qu'un saut par appel,
@@ -152,37 +164,61 @@ export function buildFixedChainGraph(
   retriever: Retriever = new SupabaseRetriever(),
   model: LanguageModel = bedrockProvider.volume(),
   routeQuestion: RouteQuestion = routerQuestion,
+  // Injecté pour la même raison que routeQuestion (8b) : followRenvois teste
+  // sa propre dégradation sur échec (9c) sans dépendre d'une vraie panne DB.
+  suivreRenvoiFn: SuivreRenvoiFn = suivreRenvoi,
 ) {
   // routeQuestion est injecté séparément de model : le nœud route tourne
   // avant draft et ne doit pas dépendre d'un LanguageModel qu'un test du
   // seul nœud draft (ex. la branche abstention) fournit volontairement
   // cassé - voir "Scope decision: why a third injectable dependency" (8b).
   async function route(state: AgentState): Promise<Partial<AgentState>> {
-    const { codes } = await routeQuestion(state.question, model);
-    return { codes };
+    try {
+      const { codes } = await routeQuestion(state.question, model);
+      return { codes };
+    } catch (error) {
+      // Le routage n'est qu'une aide de précision - search tourne déjà sans
+      // filtre de code quand state.codes est undefined, donc un échec ici
+      // dégrade vers une recherche non filtrée plutôt que de planter tout
+      // le graphe (9c) ; si ça ne suffit pas non plus, le chemin "aucun
+      // résultat" de search reprend la main.
+      console.error('route : routeQuestion a échoué, recherche non filtrée par code.', error);
+      return { codes: undefined };
+    }
   }
 
   async function search(state: AgentState): Promise<Partial<AgentState>> {
-    const chunks = await retriever.search({
-      texte: state.question,
-      dateReference: state.dateReference,
-      topK: TOP_K,
-      ...(state.codes ? { codes: state.codes } : {}),
-    });
+    try {
+      const chunks = await retriever.search({
+        texte: state.question,
+        dateReference: state.dateReference,
+        topK: TOP_K,
+        ...(state.codes ? { codes: state.codes } : {}),
+      });
 
-    if (chunks.length === 0) {
+      if (chunks.length === 0) {
+        return { citations: [], renvoiIterations: 0 };
+      }
+
+      const sources = chunks.map((chunk) => ({
+        articleId: chunk.articleIdentifier,
+        ...(chunk.subdivisionLabel !== undefined ? { subdivisionLabel: chunk.subdivisionLabel } : {}),
+      }));
+      const citations = (await fetchArticlesForCitation(sources, state.dateReference)).map(toCitation);
+      return { citations, renvoiIterations: 0 };
+    } catch (error) {
+      // Ni retriever.search ni fetchArticlesForCitation n'ont de repli
+      // raisonnable (recherche/DB indisponible) - traité comme "rien
+      // trouvé", la branche que draft transforme déjà en abstention honnête
+      // plutôt que de laisser l'échec faire planter tout le graphe (9c).
+      console.error('search : la recherche a échoué, traitée comme aucun résultat trouvé.', error);
       return { citations: [], renvoiIterations: 0 };
     }
-
-    const sources = chunks.map((chunk) => ({
-      articleId: chunk.articleIdentifier,
-      ...(chunk.subdivisionLabel !== undefined ? { subdivisionLabel: chunk.subdivisionLabel } : {}),
-    }));
-    const citations = (await fetchArticlesForCitation(sources, state.dateReference)).map(toCitation);
-    return { citations, renvoiIterations: 0 };
   }
 
   async function draft(state: AgentState): Promise<Partial<AgentState>> {
+    const draftAttemptsSoFar = state.draftAttempts ?? 0;
+
     if (state.citations.length === 0) {
       return {
         reponse: buildAbstentionReponse(
@@ -191,30 +227,48 @@ export function buildFixedChainGraph(
           state.dateReference,
           'Aucun article trouvé dans le corpus indexé pour cette question.',
         ),
+        draftAttempts: draftAttemptsSoFar,
+        tokenUsage: state.tokenUsage,
       };
     }
 
+    let draftAttempts = draftAttemptsSoFar;
+    let tokenUsage = state.tokenUsage;
+
     for (let attempt = 1; attempt <= MAX_DRAFT_ATTEMPTS; attempt++) {
       try {
-        const { object } = await generateObject({
+        const { object, usage } = await generateObject({
           model,
           schema: ReponseStructureeIndexee,
           prompt: buildDraftPrompt(state.question, state.citations),
         });
+        draftAttempts++;
+        tokenUsage = addUsage(tokenUsage, usage);
 
         if (citationsIndicesValides(object, state.citations.length)) {
-          return { reponse: toReponseStructuree(object, state.citations, state.traceId, state.dateReference) };
+          return {
+            reponse: toReponseStructuree(object, state.citations, state.traceId, state.dateReference),
+            draftAttempts,
+            tokenUsage,
+          };
         }
 
         console.error(
           `draft : index de citation invalide (tentative ${attempt}/${MAX_DRAFT_ATTEMPTS}) pour la question "${state.question}".`,
         );
       } catch (error) {
-        // Un échec de generateObject lui-même (forme invalide, ex. escalade
-        // manquante sur une abstention - observé en direct pendant 8a) doit
-        // être retenté comme un index invalide, pas remonter et faire
-        // planter tout le run : la vérification existe justement pour que
-        // le pire cas soit une abstention honnête, jamais un crash.
+        draftAttempts++;
+        // NoObjectGeneratedError (forme invalide, ex. escalade manquante sur
+        // une abstention - observé en direct pendant 8a) porte encore son
+        // propre usage - le seul cas d'erreur où le coût réel de la
+        // tentative ratée est récupérable plutôt que perdu (9b).
+        if (NoObjectGeneratedError.isInstance(error) && error.usage !== undefined) {
+          tokenUsage = addUsage(tokenUsage, error.usage);
+        }
+        // Un échec de generateObject lui-même doit être retenté comme un
+        // index invalide, pas remonter et faire planter tout le run : la
+        // vérification existe justement pour que le pire cas soit une
+        // abstention honnête, jamais un crash.
         console.error(
           `draft : generateObject a échoué (tentative ${attempt}/${MAX_DRAFT_ATTEMPTS}) pour la question "${state.question}".`,
           error,
@@ -226,7 +280,7 @@ export function buildFixedChainGraph(
     // jamais écraser une réponse déjà valide - seul le tout premier échec,
     // sans réponse antérieure, mérite une abstention.
     if (state.reponse !== undefined) {
-      return {};
+      return { draftAttempts, tokenUsage };
     }
 
     return {
@@ -236,6 +290,8 @@ export function buildFixedChainGraph(
         state.dateReference,
         `La vérification des citations a échoué après ${MAX_DRAFT_ATTEMPTS} tentatives - aucune réponse fiable n'a pu être construite.`,
       ),
+      draftAttempts,
+      tokenUsage,
     };
   }
 
@@ -246,23 +302,32 @@ export function buildFixedChainGraph(
       return { newCitationsFound: 0, renvoiIterations };
     }
 
-    const { renvois } = await suivreRenvoi(sourceArticleId);
-    const nouveaux = renvoisNonCouverts(renvois, state.citations);
-    if (nouveaux.length === 0) {
+    try {
+      const { renvois } = await suivreRenvoiFn(sourceArticleId);
+      const nouveaux = renvoisNonCouverts(renvois, state.citations);
+      if (nouveaux.length === 0) {
+        return { newCitationsFound: 0, renvoiIterations };
+      }
+
+      const sources = nouveaux.map((r) => ({
+        articleId: r.cibleArticleId,
+        ...(r.cibleSubdivision !== undefined ? { subdivisionLabel: r.cibleSubdivision } : {}),
+      }));
+      const citationsNouvelles = (await fetchArticlesForCitation(sources, state.dateReference)).map(toCitation);
+
+      return {
+        citations: [...state.citations, ...citationsNouvelles],
+        newCitationsFound: citationsNouvelles.length,
+        renvoiIterations,
+      };
+    } catch (error) {
+      // draft a déjà produit une reponse valide à ce stade (afterDraft ne
+      // route ici que si regle_principale existe) - un échec de suivi de
+      // renvoi ne doit jamais l'écraser, seulement renoncer à l'enrichir
+      // (9c), même traitement que "rien de nouveau trouvé" ci-dessus.
+      console.error('followRenvois : suivreRenvoi a échoué, réponse existante conservée sans enrichissement.', error);
       return { newCitationsFound: 0, renvoiIterations };
     }
-
-    const sources = nouveaux.map((r) => ({
-      articleId: r.cibleArticleId,
-      ...(r.cibleSubdivision !== undefined ? { subdivisionLabel: r.cibleSubdivision } : {}),
-    }));
-    const citationsNouvelles = (await fetchArticlesForCitation(sources, state.dateReference)).map(toCitation);
-
-    return {
-      citations: [...state.citations, ...citationsNouvelles],
-      newCitationsFound: citationsNouvelles.length,
-      renvoiIterations,
-    };
   }
 
   return new StateGraph(AgentStateAnnotation)

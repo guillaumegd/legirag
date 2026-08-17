@@ -122,6 +122,24 @@ below closes out what's left of that foundation before data work starts.
   following, deterministic calculation, and the other agent tools, with
   versioned tool descriptions, working end-to-end with a third-party agent
   client
+  - [x] 7a. **MCP server skeleton and `chercher_droit`** - the `packages/mcp`
+    HTTP (Streamable HTTP transport) server, the versioned tool-description
+    scaffold, and the first real tool - `chercher_droit`, wrapping the
+    existing `SupabaseRetriever` - reachable end-to-end via a minimal MCP
+    client script
+  - [ ] 7b. **`suivre_renvoi`** - cross-reference-following tool querying the
+    `renvois` table, resolving to target articles while still respecting the
+    search RLS visibility rules (state/date/code), returning resolved and
+    unresolved references
+  - [ ] 7c. **`router_question`, `calculer`, `demander_a_l_humain`** - the
+    remaining three real tools: LLM-based multi-code routing, a deterministic
+    (unit-tested, no model call) calculation tool, and the trivial escalation
+    tool
+  - [ ] 7d. **Stub tools and third-party client verification** - stubs for
+    `version_a_la_date` (real at item 10), `resoudre_convention` (real if the
+    KALI branch is built), and `analyser_document` (real if the optional
+    document mode is built), plus the end-to-end check with a real third-party
+    MCP client (e.g. Claude Desktop) answering real questions correctly
 - [ ] 8. **Reasoning agent** - the orchestration graph (routing, search,
   drafting, verification) with a bounded cross-reference-following loop,
   durable state, structured and schema-validated output, and code-level

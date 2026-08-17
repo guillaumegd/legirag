@@ -1,2 +1,7 @@
-// Serveur MCP, les 8 outils, descriptions versionnées - à partir de J7.
-export {};
+import { startServer } from './server.js';
+
+startServer().catch((error: unknown) => {
+  console.error('Échec du démarrage du serveur MCP :', error);
+  process.exitCode = 1;
+});
+

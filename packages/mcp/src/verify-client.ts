@@ -1,8 +1,8 @@
-// Script de vérification manuelle (étape 4 de 7a, étendu en étape 5 de 7b) :
-// se connecte au serveur MCP en cours d'exécution comme le ferait un agent
-// tiers, liste ses outils, puis appelle chercher_droit et suivre_renvoi sur
-// des cas de fumée connus. Pas branché sur index.ts - à lancer séparément,
-// serveur déjà démarré (`pnpm --filter @legirag/mcp dev`), via
+// Script de vérification manuelle (étape 4 de 7a, étendu en étape 5 de 7b et
+// en étape 3b de 7c) : se connecte au serveur MCP en cours d'exécution comme
+// le ferait un agent tiers, liste ses outils, puis appelle les cinq outils
+// réels sur des cas de fumée connus. Pas branché sur index.ts - à lancer
+// séparément, serveur déjà démarré (`pnpm --filter @legirag/mcp dev`), via
 // `pnpm --filter @legirag/mcp verify-client`.
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -16,6 +16,10 @@ const SMOKE_QUESTION = 'vitesse maximale autorisée en agglomération';
 // Article 1840 R du code général des impôts - un seul renvoi, résolu, vers
 // l'article 893 (même code). Choisi pour rester lisible dans cette sortie.
 const SMOKE_ARTICLE_ID = 'LEGIARTI000006313236';
+// Cas multi-code (7c, Step 3b) : censé toucher à la fois code-de-la-route
+// (vitesse autorisée) et code-penal (le grand excès de vitesse peut être un
+// délit) - le cas "140 km/h" cité par le cahier des charges technique.
+const SMOKE_ROUTER_QUESTION = 'je roule à 140 km/h sur autoroute, qu’est-ce que je risque ?';
 
 async function main(): Promise<void> {
   const port = Number(process.env.MCP_PORT ?? DEFAULT_PORT);
@@ -39,6 +43,30 @@ async function main(): Promise<void> {
   console.log(`\nAppel de suivre_renvoi avec : "${SMOKE_ARTICLE_ID}"`);
   const renvoiResult = await client.callTool({ name: 'suivre_renvoi', arguments: { articleId: SMOKE_ARTICLE_ID } });
   console.log(JSON.stringify(renvoiResult, null, 2));
+
+  console.log('\nAppel de demander_a_l_humain :');
+  const escaladeResult = await client.callTool({
+    name: 'demander_a_l_humain',
+    arguments: {
+      motif: 'Question hors périmètre du corpus indexé',
+      questionOuverte: "Quelle loi s'applique à une succession internationale ?",
+    },
+  });
+  console.log(JSON.stringify(escaladeResult, null, 2));
+
+  console.log('\nAppel de calculer (délai) :');
+  const calculResult = await client.callTool({
+    name: 'calculer',
+    arguments: {
+      type: 'delai',
+      params: { dateDepart: '2026-01-15', duree: 14, unite: 'jours', sourceArticle: 'L221-18 C. conso' },
+    },
+  });
+  console.log(JSON.stringify(calculResult, null, 2));
+
+  console.log(`\nAppel de router_question avec : "${SMOKE_ROUTER_QUESTION}"`);
+  const routerResult = await client.callTool({ name: 'router_question', arguments: { question: SMOKE_ROUTER_QUESTION } });
+  console.log(JSON.stringify(routerResult, null, 2));
 
   await client.close();
 

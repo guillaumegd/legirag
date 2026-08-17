@@ -131,7 +131,7 @@ below closes out what's left of that foundation before data work starts.
     `renvois` table, resolving to target articles while still respecting the
     search RLS visibility rules (state/date/code), returning resolved and
     unresolved references
-  - [ ] 7c. **`router_question`, `calculer`, `demander_a_l_humain`** - the
+  - [x] 7c. **`router_question`, `calculer`, `demander_a_l_humain`** - the
     remaining three real tools: LLM-based multi-code routing, a deterministic
     (unit-tested, no model call) calculation tool, and the trivial escalation
     tool

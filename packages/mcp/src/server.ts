@@ -5,10 +5,22 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { requireEnv } from '@legirag/shared';
 import { SupabaseRetriever } from '@legirag/retrieval';
+import { calculer } from './calculer.js';
 import { toRequeteRecherche, toToolContent } from './chercher-droit.js';
+import { calculerDescription } from './descriptions/calculer.js';
 import { chercherDroitDescription } from './descriptions/chercher-droit.js';
+import { demanderALHumainDescription } from './descriptions/demander-a-l-humain.js';
+import { routerQuestionDescription } from './descriptions/router-question.js';
 import { suivreRenvoiDescription } from './descriptions/suivre-renvoi.js';
-import { ChercherDroitInput, SuivreRenvoiInput } from './schema.js';
+import { demanderALHumain } from './demander-a-l-humain.js';
+import { routerQuestion } from './router-question.js';
+import {
+  CalculerInput,
+  ChercherDroitInput,
+  DemanderALHumainInput,
+  RouterQuestionInput,
+  SuivreRenvoiInput,
+} from './schema.js';
 import { suivreRenvoi } from './suivre-renvoi.js';
 
 const DEFAULT_PORT = 3333;
@@ -31,6 +43,36 @@ export function createLegiragMcpServer(): McpServer {
     { description: suivreRenvoiDescription.description, inputSchema: SuivreRenvoiInput.shape },
     async (input) => {
       const result = await suivreRenvoi(input.articleId);
+      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+    },
+  );
+
+  server.registerTool(
+    demanderALHumainDescription.name,
+    { description: demanderALHumainDescription.description, inputSchema: DemanderALHumainInput.shape },
+    (input) => {
+      const result = demanderALHumain(input);
+      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+    },
+  );
+
+  // CalculerInput est une union discriminante (pas un ZodObject), donc pas de
+  // .shape ici : on passe le schéma complet, accepté par registerTool comme
+  // AnySchema (voir @modelcontextprotocol/sdk/server/zod-compat.js).
+  server.registerTool(
+    calculerDescription.name,
+    { description: calculerDescription.description, inputSchema: CalculerInput },
+    (input) => {
+      const result = calculer(input);
+      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+    },
+  );
+
+  server.registerTool(
+    routerQuestionDescription.name,
+    { description: routerQuestionDescription.description, inputSchema: RouterQuestionInput.shape },
+    async (input) => {
+      const result = await routerQuestion(input.question);
       return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
     },
   );

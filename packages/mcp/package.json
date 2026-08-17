@@ -16,6 +16,7 @@
     "@legirag/retrieval": "workspace:*",
     "@legirag/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "ai": "^4.0.0",
     "pg": "^8.23.0",
     "zod": "^3.23.8"
   },

@@ -61,6 +61,22 @@ describe('ReponseStructuree', () => {
     expect(ReponseStructuree.safeParse(valide).success).toBe(true);
   });
 
+  // Item 8a : une recherche vide n'a aucune citation réelle à donner
+  it('accepte une abstention sans regle_principale', () => {
+    const { regle_principale: _omis, ...sansRegle } = reponseValide;
+    const valide = {
+      ...sansRegle,
+      confiance: 'abstention' as const,
+      escalade: { motif: 'Aucun résultat de recherche', interlocuteur: 'support juridique legirag' },
+    };
+    expect(ReponseStructuree.safeParse(valide).success).toBe(true);
+  });
+
+  it('rejette une réponse non abstentionniste sans regle_principale', () => {
+    const { regle_principale: _omis, ...sansRegle } = reponseValide;
+    expect(ReponseStructuree.safeParse(sansRegle).success).toBe(false);
+  });
+
   it('accepte une réponse complète et valide', () => {
     expect(ReponseStructuree.safeParse(reponseValide).success).toBe(true);
   });

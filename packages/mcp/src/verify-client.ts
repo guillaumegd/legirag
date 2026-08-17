@@ -7,9 +7,8 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { formatDateReference } from '@legirag/retrieval';
-import { createDatabaseClient } from './pg-client.js';
-import { fetchRenvoiRowsUnderActiveRlsSession, splitRenvois } from './suivre-renvoi.js';
+import { fetchRenvoiRowsUnderActiveRlsSession, splitRenvois } from '@legirag/agent';
+import { createDatabaseClient, formatDateReference } from '@legirag/retrieval';
 
 const DEFAULT_PORT = 3333;
 const SMOKE_QUESTION = 'vitesse maximale autorisée en agglomération';

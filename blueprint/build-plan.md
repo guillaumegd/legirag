@@ -144,10 +144,25 @@ below closes out what's left of that foundation before data work starts.
     KALI branch is built), and `analyser_document` (real if the optional
     document mode is built), plus the end-to-end check with a real third-party
     MCP client (e.g. Claude Desktop) answering real questions correctly
-- [ ] 8. **Reasoning agent** - the orchestration graph (routing, search,
+- [x] 8. **Reasoning agent** - the orchestration graph (routing, search,
   drafting, verification) with a bounded cross-reference-following loop,
   durable state, structured and schema-validated output, and code-level
   rejection of any unsourced claim
+  - [x] 8a. **Agent foundations and fixed-chain baseline** - relocate the
+    tool logic from `packages/mcp` into `packages/agent` (so `mcp` becomes
+    the thin transport wrapper `coding-standards.md` already documents it
+    as), add citation-building from retrieved chunks, and a single-node
+    LangGraph.js graph producing a schema-validated `ReponseStructuree` -
+    no routing, cross-reference loop, or verification yet. Also the fixed,
+    non-agentic pipeline item 13 needs for its comparison write-up.
+  - [x] 8b. **Routing node** - wire `router_question` as the graph's entry
+    node, feeding its chosen codes into the search step
+  - [x] 8c. **Bounded cross-reference-following loop** - follow `renvois`
+    for supplementary texts after the first draft, bounded iteration count,
+    redraft with newly resolved texts folded in
+  - [x] 8d. **Verification and abstention** - code-level rejection of any
+    citation not backed by an actually-retrieved or actually-resolved
+    source, the abstention/escalade path, and the graph's stop criteria
 - [ ] 9. **Agent quality evaluation** - run the full question set through the
   agent and measure routing accuracy, cross-reference coverage, tool
   selection accuracy, turns and cost per question, recovery after an
@@ -191,6 +206,14 @@ below closes out what's left of that foundation before data work starts.
   path; and the published write-up of the measurement results (baseline vs.
   improvements, agent quality metrics, cost and latency, and a comparison
   against a simple fixed pipeline with no agentic loop)
+
+## Post-MVP
+
+- [ ] 14. **Item 8 deep-dive exploration** - turn the agent-reasoning
+  walkthrough (`docs/private/REFERENCE-visite-guidee-item-8-agent.md`) into
+  slides and/or an interactive case study demonstrating the index-based
+  citation-grounding redesign and the audit-driven fix cycle - interview
+  material, built once the rest of the project is further along
 
 ## Optional, not blocking
 

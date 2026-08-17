@@ -41,22 +41,38 @@ export type Escalade = z.infer<typeof Escalade>;
 export const Confiance = z.enum(['elevee', 'moyenne', 'abstention']);
 export type Confiance = z.infer<typeof Confiance>;
 
+// Forme brute (avant refine) de la réponse structurée - exportée séparément
+// pour que packages/agent (8a) puisse en dériver, via .omit(), le schéma
+// passé à generateObject : trace_id et date_reference sont assignés par le
+// code du graphe après l'appel modèle (jamais par le modèle lui-même), donc
+// le schéma qui contraint la sortie du modèle ne doit pas les demander.
+export const ReponseStructureeObjet = z.object({
+  verdict: z.string().min(1),
+  // Optionnel uniquement pour porter une abstention honnête (item 8a) :
+  // une recherche vide n'a aucune citation réelle à donner, et en fabriquer
+  // une violerait la règle "jamais d'affirmation non sourcée" pire que
+  // l'absence elle-même. Voir le refine ci-dessous : obligatoire dès que
+  // confiance n'est pas 'abstention'.
+  regle_principale: Citation.optional(),
+  // R4 : le motif de présence rend explicite pourquoi chaque texte apparaît
+  textes_complementaires: z.array(TexteComplementaire),
+  // R4 : jamais vide - une réponse silencieuse sur son périmètre est un défaut, pas une simplicité
+  hors_perimetre: z.array(z.string()).min(1),
+  confiance: Confiance,
+  escalade: Escalade.optional(),
+  date_reference: z.string().date(),
+  trace_id: z.string().min(1),
+});
+
 // Schéma de la réponse structurée - cahier des charges métier § 7
-export const ReponseStructuree = z
-  .object({
-    verdict: z.string().min(1),
-    regle_principale: Citation,
-    // R4 : le motif de présence rend explicite pourquoi chaque texte apparaît
-    textes_complementaires: z.array(TexteComplementaire),
-    // R4 : jamais vide - une réponse silencieuse sur son périmètre est un défaut, pas une simplicité
-    hors_perimetre: z.array(z.string()).min(1),
-    confiance: Confiance,
-    escalade: Escalade.optional(),
-    date_reference: z.string().date(),
-    trace_id: z.string().min(1),
-  })
-  .refine((r) => r.confiance !== 'abstention' || r.escalade !== undefined, {
+export const ReponseStructuree = ReponseStructureeObjet.refine(
+  (r) => r.confiance !== 'abstention' || r.escalade !== undefined,
+  {
     message: 'Une abstention doit porter une escalade',
     path: ['escalade'],
-  });
+  },
+).refine((r) => r.confiance === 'abstention' || r.regle_principale !== undefined, {
+  message: 'Une réponse non abstentionniste doit citer une règle principale',
+  path: ['regle_principale'],
+});
 export type ReponseStructuree = z.infer<typeof ReponseStructuree>;

@@ -1,7 +1,6 @@
 import type { Client } from 'pg';
 import type { Renvoi } from '@legirag/shared';
-import { formatDateReference } from '@legirag/retrieval';
-import { createDatabaseClient } from './pg-client.js';
+import { createDatabaseClient, formatDateReference } from '@legirag/retrieval';
 
 // cibleVisible vient du LEFT JOIN articles (Step 3) sous RLS - un signal
 // interne à la requête, jamais exposé sur Renvoi lui-même.

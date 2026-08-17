@@ -7,13 +7,20 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -b",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "fixed-chain": "tsx --env-file=../../.env src/run-fixed-chain.ts"
   },
   "dependencies": {
+    "@langchain/langgraph": "^1.4.10",
     "@legirag/retrieval": "workspace:*",
-    "@legirag/shared": "workspace:*"
+    "@legirag/shared": "workspace:*",
+    "ai": "^4.0.0",
+    "pg": "^8.23.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/pg": "^8.21.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }
 }

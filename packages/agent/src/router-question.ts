@@ -2,8 +2,7 @@ import { generateObject } from 'ai';
 import type { LanguageModel } from 'ai';
 import type { Client } from 'pg';
 import { bedrockProvider } from '@legirag/shared';
-import { formatDateReference } from '@legirag/retrieval';
-import { createDatabaseClient } from './pg-client.js';
+import { createDatabaseClient, formatDateReference } from '@legirag/retrieval';
 import { RouterQuestionOutput } from './schema.js';
 
 export interface CodeDisponible {

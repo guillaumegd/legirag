@@ -5,7 +5,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { requireEnv } from '@legirag/shared';
 import { SupabaseRetriever } from '@legirag/retrieval';
-import { calculer } from './calculer.js';
+import { CalculerInput, DemanderALHumainInput, calculer, demanderALHumain, routerQuestion, suivreRenvoi } from '@legirag/agent';
 import { toRequeteRecherche, toToolContent } from './chercher-droit.js';
 import { analyserDocumentDescription } from './descriptions/analyser-document.js';
 import { calculerDescription } from './descriptions/calculer.js';
@@ -15,20 +15,15 @@ import { resoudreConventionDescription } from './descriptions/resoudre-conventio
 import { routerQuestionDescription } from './descriptions/router-question.js';
 import { suivreRenvoiDescription } from './descriptions/suivre-renvoi.js';
 import { versionALaDateDescription } from './descriptions/version-a-la-date.js';
-import { demanderALHumain } from './demander-a-l-humain.js';
-import { routerQuestion } from './router-question.js';
 import {
   AnalyserDocumentInput,
-  CalculerInput,
   ChercherDroitInput,
-  DemanderALHumainInput,
   ResoudreConventionInput,
   RouterQuestionInput,
   SuivreRenvoiInput,
   VersionALaDateInput,
 } from './schema.js';
 import { stubToolResult } from './stub-tool.js';
-import { suivreRenvoi } from './suivre-renvoi.js';
 
 const VERSION_A_LA_DATE_MESSAGE =
   "Non implémenté : nécessite le palier de profondeur (historique complet des textes), prévu à l'item 10 de la feuille de route. Utilise chercher_droit avec une date de référence pour la version actuellement en vigueur, ou demander_a_l_humain si la question porte sur une version passée du texte.";

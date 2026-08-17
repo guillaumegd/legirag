@@ -247,7 +247,7 @@ below closes out what's left of that foundation before data work starts.
     record (routing decision, tool calls, timing) captured during a graph
     run and persisted keyed by `trace_id`, plus `GET /trace/:trace_id` and
     `GET /article/:article_identifier` read endpoints
-  - [ ] 11c. **Cost caps, rate limiting, structured errors** - per-request and
+  - [x] 11c. **Cost caps, rate limiting, structured errors** - per-request and
     daily cost caps with a circuit breaker, per-IP rate limiting, and
     consistent structured error responses across all three endpoints
   - [ ] 11d. **Containerization and end-to-end validation** - Dockerfile,

@@ -1,4 +1,4 @@
-import type { AgentState } from '@legirag/agent';
+import type { AgentState, TokenUsage } from '@legirag/agent';
 import { persistTrace } from '@legirag/retrieval';
 import { ReponseStructuree as ReponseStructureeSchema, type ExecutionTrace } from '@legirag/shared';
 import { buildExecutionTrace, type TraceEvent } from './build-execution-trace.js';
@@ -41,6 +41,11 @@ export async function streamQuestionToSink(
   // unitaires doivent la remplacer plutôt que de déclencher une connexion
   // réseau réelle à chaque run testé.
   persistTraceFn: (trace: ExecutionTrace) => Promise<void> = persistTrace,
+  // Synchrone et non-lançant par contrat (11c) : ne fait qu'incrémenter un
+  // compteur en mémoire (CostGuardService) - contrairement à persistTraceFn,
+  // pas d'I/O réelle, donc pas besoin de son propre try/catch. Défaut no-op
+  // pour que les tests existants n'aient rien à changer.
+  recordUsageFn: (tokenUsage: TokenUsage | undefined) => void = () => {},
 ): Promise<void> {
   const startedAtMs = Date.now();
   const traceEvents: TraceEvent[] = [];
@@ -61,6 +66,7 @@ export async function streamQuestionToSink(
     }
 
     const reponse = ReponseStructureeSchema.parse(derniereValeur?.reponse);
+    recordUsageFn(derniereValeur?.tokenUsage);
 
     // Persistance best-effort (11b) : un échec ici ne doit jamais priver le
     // client de sa réponse déjà valide, seulement rendre son trace_id

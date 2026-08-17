@@ -41,4 +41,14 @@ describe('QuestionRequestSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('rejette une question de plus de 2000 caractères', () => {
+    const result = QuestionRequestSchema.safeParse({ question: 'a'.repeat(2001) });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepte une question de exactement 2000 caractères', () => {
+    const result = QuestionRequestSchema.safeParse({ question: 'a'.repeat(2000) });
+    expect(result.success).toBe(true);
+  });
 });

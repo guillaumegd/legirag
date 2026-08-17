@@ -7,7 +7,9 @@ import { requireEnv } from '@legirag/shared';
 import { SupabaseRetriever } from '@legirag/retrieval';
 import { toRequeteRecherche, toToolContent } from './chercher-droit.js';
 import { chercherDroitDescription } from './descriptions/chercher-droit.js';
-import { ChercherDroitInput } from './schema.js';
+import { suivreRenvoiDescription } from './descriptions/suivre-renvoi.js';
+import { ChercherDroitInput, SuivreRenvoiInput } from './schema.js';
+import { suivreRenvoi } from './suivre-renvoi.js';
 
 const DEFAULT_PORT = 3333;
 
@@ -21,6 +23,15 @@ export function createLegiragMcpServer(): McpServer {
     async (input) => {
       const chunks = await retriever.search(toRequeteRecherche(input));
       return { content: toToolContent(chunks) };
+    },
+  );
+
+  server.registerTool(
+    suivreRenvoiDescription.name,
+    { description: suivreRenvoiDescription.description, inputSchema: SuivreRenvoiInput.shape },
+    async (input) => {
+      const result = await suivreRenvoi(input.articleId);
+      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
     },
   );
 

@@ -127,7 +127,7 @@ below closes out what's left of that foundation before data work starts.
     scaffold, and the first real tool - `chercher_droit`, wrapping the
     existing `SupabaseRetriever` - reachable end-to-end via a minimal MCP
     client script
-  - [ ] 7b. **`suivre_renvoi`** - cross-reference-following tool querying the
+  - [x] 7b. **`suivre_renvoi`** - cross-reference-following tool querying the
     `renvois` table, resolving to target articles while still respecting the
     search RLS visibility rules (state/date/code), returning resolved and
     unresolved references

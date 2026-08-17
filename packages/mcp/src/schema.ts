@@ -10,3 +10,10 @@ export const ChercherDroitInput = z.object({
   topK: z.number().int().positive().optional(),
 });
 export type ChercherDroitInput = z.infer<typeof ChercherDroitInput>;
+
+// Entrée MCP de suivre_renvoi - contrat verrouillé (cahier des charges
+// technique §5.3) : uniquement articleId, pas de date/codes.
+export const SuivreRenvoiInput = z.object({
+  articleId: z.string().min(1),
+});
+export type SuivreRenvoiInput = z.infer<typeof SuivreRenvoiInput>;

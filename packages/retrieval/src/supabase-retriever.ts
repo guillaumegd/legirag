@@ -9,6 +9,10 @@ const PRE_FUSION_LIMIT = 50; // top 50 de chaque liste avant fusion, indépendan
 // vector_search et keyword_search interrogent chunks directement, donc la
 // RLS de 4c (chunks_search_read) s'applique déjà dans les deux CTE - le
 // join final vers chunks est redondant mais sans risque.
+// c.id::int (F-02, trouvé en 7b) : chunks.id est un bigint (identity) - pg
+// le renverrait sinon en chaîne (précision au-delà de Number.MAX_SAFE_
+// INTEGER), ce qui violerait silencieusement Chunk.id: number. Un id de
+// chunk ne s'approchera jamais de la limite d'un int4.
 const HYBRID_SEARCH_SQL = `
   with vector_search as (
     select id, row_number() over (order by embedding <=> $1::extensions.vector) as rank
@@ -30,7 +34,7 @@ const HYBRID_SEARCH_SQL = `
     from vector_search v
     full outer join keyword_search k on v.id = k.id
   )
-  select c.id, c.article_identifier, c.subdivision_label, c.contenu, fused.score
+  select c.id::int, c.article_identifier, c.subdivision_label, c.contenu, fused.score
   from fused join chunks c on c.id = fused.id
   order by fused.score desc
   limit $3

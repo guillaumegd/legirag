@@ -9,11 +9,15 @@ docs/private
 blueprint
 prototypes
 infra
+# infra/docker (12d, révisé Lambda) : le seul sous-dossier d'infra/ que les
+# Dockerfiles copient réellement (script d'amorçage Lambda) - le reste
+# d'infra/ (Terraform, README) n'a rien à faire dans le contexte de build.
+!infra/docker
 supabase
-# packages/api/Dockerfile never COPYs these - excluding them keeps the
-# build context small (packages/eval/.data alone is ~19MB of embeddings
-# cache, confirmed via /audit).
+# Neither packages/api/Dockerfile nor packages/mcp/Dockerfile (12d) COPYs
+# these - excluding them keeps the build context small (packages/eval/.data
+# alone is ~19MB of embeddings cache, confirmed via /audit). packages/mcp
+# itself stays included: its own Dockerfile needs it (12d).
 packages/ingest
 packages/eval
-packages/mcp
 packages/web

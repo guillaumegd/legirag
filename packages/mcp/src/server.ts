@@ -83,7 +83,10 @@ export function createLegiragMcpServer(): McpServer {
     routerQuestionDescription.name,
     { description: routerQuestionDescription.description, inputSchema: RouterQuestionInput.shape },
     async (input) => {
-      const result = await routerQuestion(input.question);
+      // usage vient avec le résultat (12a, tracing côté agent) mais n'a
+      // jamais fait partie du contrat de cet outil MCP tiers - RouterQuestionOutput
+      // reste { codes, confiance, raisonnement } pour tout client externe.
+      const { usage: _usage, ...result } = await routerQuestion(input.question);
       return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
     },
   );

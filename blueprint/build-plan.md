@@ -271,7 +271,7 @@ below closes out what's left of that foundation before data work starts.
   - [x] 11d. **Containerization and end-to-end validation** - Dockerfile,
     runnable standalone, and a smoke test hitting all three endpoints in the
     container
-- [ ] 12. **Observability and infrastructure automation** - request tracing
+- [x] 12. **Observability and infrastructure automation** - request tracing
   down to each tool and model call with cost and latency, the evaluation
   suite wired into CI as a blocking regression check, event-driven
   reindexing, and the Terraform config able to provision the stack from
@@ -306,7 +306,7 @@ below closes out what's left of that foundation before data work starts.
   - [x] 12c. **Event-driven reindexing on text updates** - when an article's
     source text changes, automatically recompute its chunk(s)/embedding(s)
     instead of requiring a manual full reload
-  - [ ] 12d. **Terraform provisioning the stack from scratch** - extend
+  - [x] 12d. **Terraform provisioning the stack from scratch** - extend
     `infra/` beyond today's provider-only skeleton (`providers.tf`,
     `variables.tf`, `versions.tf`) to define the real resources (containers
     for API/tool server/observability, database, secrets management) so

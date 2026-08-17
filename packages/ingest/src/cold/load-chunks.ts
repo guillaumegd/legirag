@@ -134,6 +134,15 @@ async function main(): Promise<void> {
         batch.map((a) => a.articleIdentifier),
       );
       const result = await processBatch(client, batch, subdivisionsByArticle);
+      // Item 12c : un article inséré ici a aussi déclenché le trigger
+      // enqueue_reindex (INSERT), qui l'a mis en file - déjà traité par ce
+      // chargement initial, donc retiré tout de suite, sinon un premier
+      // chargement sur une base vierge laisse reindex_queue pleine
+      // d'articles déjà à jour, qu'un futur `process:reindex-queue`
+      // réembedderait une seconde fois pour rien (audit, 2026-08-17).
+      await client.query('delete from reindex_queue where article_identifier = any($1)', [
+        batch.map((a) => a.articleIdentifier),
+      ]);
 
       articlesProcessed += batch.length;
       chunksInserted += result.chunksInserted;

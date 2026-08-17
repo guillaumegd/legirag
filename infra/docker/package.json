@@ -1,0 +1,9 @@
+{
+  "name": "legirag-lambda-entrypoint",
+  "private": true,
+  "type": "module",
+  "description": "Amorçage Lambda isolé du workspace pnpm - voir lambda-entrypoint.mjs. Un package.json dédié plutôt qu'une dépendance ajoutée à packages/api ou packages/mcp : cette plomberie n'appartient à aucun des deux, et tourner en dehors du monorepo évite tout risque sur pnpm-lock.yaml.",
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "3.1112.0"
+  }
+}

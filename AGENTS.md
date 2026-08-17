@@ -108,12 +108,17 @@ checks do not make the Blueprint unusable.
 ## Commands
 
 TypeScript monorepo (pnpm workspaces: `packages/*`). No dev server yet - `web`
-(Next.js, DSFR-inspired UI, planned) and `api` (NestJS, planned) are still stubs.
+(Next.js, DSFR-inspired UI, planned) is still a stub; `api` (NestJS) and `mcp`
+are built and deployed (see Deploy below).
 
 - Build: `pnpm build`
 - Lint: `pnpm lint`
 - Typecheck: `pnpm typecheck`
 - Test: `pnpm test` (Vitest, runs `packages/*/src/**/*.test.ts`)
+- Deploy: `pnpm deploy:bootstrap` (first deploy on a clean AWS account),
+  `pnpm deploy:images` (redeploy after a code change), `pnpm deploy:secrets`
+  (push `.env.prod` to the real secret) - see `infra/README.md` for the full
+  walkthrough, one-time setup, and how to tear it down
 
 Testing is already configured with real tests (`packages/shared/src/*.test.ts`),
 so it is a gate for logic-bearing build steps. GitHub Actions

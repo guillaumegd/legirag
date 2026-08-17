@@ -1,0 +1,19 @@
+node_modules
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+.git
+.env
+.env.*
+docs/private
+blueprint
+prototypes
+infra
+supabase
+# packages/api/Dockerfile never COPYs these - excluding them keeps the
+# build context small (packages/eval/.data alone is ~19MB of embeddings
+# cache, confirmed via /audit).
+packages/ingest
+packages/eval
+packages/mcp
+packages/web

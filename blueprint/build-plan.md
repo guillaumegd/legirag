@@ -233,7 +233,7 @@ below closes out what's left of that foundation before data work starts.
     sizes and consider dropping `code-general-des-impots` (or narrowing the
     demo set further) rather than assuming the ~150-250 MB headroom 4b
     originally estimated is still accurate.
-- [ ] 11. **Public API** - endpoints for asking a question (streamed
+- [x] 11. **Public API** - endpoints for asking a question (streamed
   response), reading a trace, and reading an article, validated end-to-end
   against the shared schemas, with per-request and daily cost caps, rate
   limiting, and structured error handling; containerized and runnable
@@ -250,7 +250,7 @@ below closes out what's left of that foundation before data work starts.
   - [x] 11c. **Cost caps, rate limiting, structured errors** - per-request and
     daily cost caps with a circuit breaker, per-IP rate limiting, and
     consistent structured error responses across all three endpoints
-  - [ ] 11d. **Containerization and end-to-end validation** - Dockerfile,
+  - [x] 11d. **Containerization and end-to-end validation** - Dockerfile,
     runnable standalone, and a smoke test hitting all three endpoints in the
     container
 - [ ] 12. **Observability and infrastructure automation** - request tracing

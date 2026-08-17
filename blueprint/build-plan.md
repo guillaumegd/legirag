@@ -243,7 +243,7 @@ below closes out what's left of that foundation before data work starts.
     the existing reasoning-agent graph, stream the answer as it's produced,
     validate the final payload against `ReponseStructuree`, and expose a
     `GET /health` check
-  - [ ] 11b. **Trace and article read endpoints** - a minimal execution-trace
+  - [x] 11b. **Trace and article read endpoints** - a minimal execution-trace
     record (routing decision, tool calls, timing) captured during a graph
     run and persisted keyed by `trace_id`, plus `GET /trace/:trace_id` and
     `GET /article/:article_identifier` read endpoints

@@ -1,5 +1,7 @@
 import type { AgentState } from '@legirag/agent';
-import { ReponseStructuree as ReponseStructureeSchema } from '@legirag/shared';
+import { persistTrace } from '@legirag/retrieval';
+import { ReponseStructuree as ReponseStructureeSchema, type ExecutionTrace } from '@legirag/shared';
+import { buildExecutionTrace, type TraceEvent } from './build-execution-trace.js';
 import { formatSseEvent } from './sse.js';
 
 export interface SseSink {
@@ -34,7 +36,14 @@ export async function streamQuestionToSink(
   buildGraph: () => StreamableGraph,
   input: GraphInput,
   sink: SseSink,
+  // Injecté comme buildGraph/routeQuestion/suivreRenvoiFn ailleurs dans ce
+  // projet : la valeur par défaut parle à une vraie base, donc les tests
+  // unitaires doivent la remplacer plutôt que de déclencher une connexion
+  // réseau réelle à chaque run testé.
+  persistTraceFn: (trace: ExecutionTrace) => Promise<void> = persistTrace,
 ): Promise<void> {
+  const startedAtMs = Date.now();
+  const traceEvents: TraceEvent[] = [];
   try {
     const graph = buildGraph();
     const stream = await graph.stream(input, { streamMode: ['updates', 'values'] });
@@ -43,6 +52,7 @@ export async function streamQuestionToSink(
     for await (const [mode, payload] of stream) {
       if (mode === 'updates') {
         for (const [node, partialState] of Object.entries(payload as Record<string, unknown>)) {
+          traceEvents.push({ node, timestampMs: Date.now(), partialState: partialState as Record<string, unknown> });
           sink.write(formatSseEvent(node, partialState));
         }
       } else {
@@ -51,6 +61,27 @@ export async function streamQuestionToSink(
     }
 
     const reponse = ReponseStructureeSchema.parse(derniereValeur?.reponse);
+
+    // Persistance best-effort (11b) : un échec ici ne doit jamais priver le
+    // client de sa réponse déjà valide, seulement rendre son trace_id
+    // introuvable via GET /trace/:trace_id.
+    try {
+      const trace = buildExecutionTrace({
+        traceId: input.traceId,
+        question: input.question,
+        dateReference: reponse.date_reference,
+        startedAtMs,
+        endedAtMs: Date.now(),
+        events: traceEvents,
+        finalCodes: derniereValeur?.codes,
+        finalTokenUsage: derniereValeur?.tokenUsage,
+        createdAt: new Date().toISOString(),
+      });
+      await persistTraceFn(trace);
+    } catch (traceError) {
+      console.error('POST /question : échec de la persistance de la trace, réponse envoyée sans trace consultable.', traceError);
+    }
+
     sink.write(formatSseEvent('done', reponse));
   } catch (error) {
     console.error('POST /question : échec non récupéré par le graphe.', error);

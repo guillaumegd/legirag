@@ -51,8 +51,9 @@ describe('streamQuestionToSink', () => {
     };
     const graph = buildFixedChainGraph(retrieverCasse, modelNonAppele, routeurFactice);
     const sink = new RecordingSink();
+    const persistTraceFactice = async (): Promise<void> => {};
 
-    await streamQuestionToSink(() => graph, buildInput(), sink);
+    await streamQuestionToSink(() => graph, buildInput(), sink, persistTraceFactice);
 
     expect(sink.ended).toBe(true);
     const doneEvent = sink.events.find((e) => e.startsWith('event: done'));
@@ -103,6 +104,27 @@ describe('streamQuestionToSink', () => {
 
     expect(sink.ended).toBe(true);
     expect(sink.events.some((e) => e.startsWith('event: error'))).toBe(true);
+  });
+
+  it("11b/F-01 : un échec de persistTraceFn ne bloque jamais l'événement done (persistance best-effort)", async () => {
+    const retrieverCasse: Retriever = {
+      async search() {
+        throw new Error('connexion recherche indisponible');
+      },
+    };
+    const graph = buildFixedChainGraph(retrieverCasse, modelNonAppele, routeurFactice);
+    const sink = new RecordingSink();
+    const persistTraceCasse = async (): Promise<void> => {
+      throw new Error('connexion base de données indisponible');
+    };
+
+    await streamQuestionToSink(() => graph, buildInput(), sink, persistTraceCasse);
+
+    expect(sink.ended).toBe(true);
+    const doneEvent = sink.events.find((e) => e.startsWith('event: done'));
+    expect(doneEvent).toBeDefined();
+    expect(doneEvent).toContain('"confiance":"abstention"');
+    expect(sink.events.some((e) => e.startsWith('event: error'))).toBe(false);
   });
 
   it('F-02 : end() est toujours appelé même si écrire le message error échoue à son tour (client déjà déconnecté)', async () => {

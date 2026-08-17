@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Citation, ReponseStructuree } from './schema.js';
+import { Citation, ExecutionTrace, ReponseStructuree } from './schema.js';
 
 const citationValide = {
   article_identifier: 'LEGIARTI000006841540',
@@ -79,5 +79,46 @@ describe('ReponseStructuree', () => {
 
   it('accepte une réponse complète et valide', () => {
     expect(ReponseStructuree.safeParse(reponseValide).success).toBe(true);
+  });
+});
+
+describe('ExecutionTrace', () => {
+  const traceValide = {
+    traceId: 'trace-001',
+    question: 'vitesse maximale en agglomération',
+    dateReference: '2026-08-17',
+    codes: ['code-de-la-route'],
+    steps: [
+      { node: 'route', durationMs: 120, summary: { codes: ['code-de-la-route'] } },
+      { node: 'search', durationMs: 340, summary: { citationsCount: 3 } },
+      { node: 'draft', durationMs: 890, summary: { confiance: 'elevee', draftAttempts: 1 } },
+    ],
+    tokenUsage: { promptTokens: 1200, completionTokens: 150 },
+    totalDurationMs: 1350,
+    createdAt: '2026-08-17T10:00:00.000Z',
+  };
+
+  it('accepte une trace complète et valide', () => {
+    expect(ExecutionTrace.safeParse(traceValide).success).toBe(true);
+  });
+
+  it('accepte une trace sans codes (routage dégradé) ni tokenUsage', () => {
+    const { codes: _omisCodes, tokenUsage: _omisUsage, ...sansCodesNiUsage } = traceValide;
+    expect(ExecutionTrace.safeParse(sansCodesNiUsage).success).toBe(true);
+  });
+
+  it('accepte des steps vides (aucun nœud exécuté avant échec)', () => {
+    const valide = { ...traceValide, steps: [] };
+    expect(ExecutionTrace.safeParse(valide).success).toBe(true);
+  });
+
+  it('rejette un step avec une durée négative', () => {
+    const invalide = { ...traceValide, steps: [{ node: 'route', durationMs: -1, summary: {} }] };
+    expect(ExecutionTrace.safeParse(invalide).success).toBe(false);
+  });
+
+  it('rejette une trace sans traceId', () => {
+    const { traceId: _omis, ...sansTraceId } = traceValide;
+    expect(ExecutionTrace.safeParse(sansTraceId).success).toBe(false);
   });
 });

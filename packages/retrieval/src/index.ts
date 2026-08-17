@@ -12,3 +12,10 @@ export { createDatabaseClient } from './pg-client.js';
 // recherche.
 export { fetchArticlesForCitation } from './fetch-articles-for-citation.js';
 export type { ArticleForCitation, CitationSource } from './fetch-articles-for-citation.js';
+// packages/api (11b) : GET /article/:article_identifier, même contrat RLS
+// que fetchArticlesForCitation mais retourne l'Article complet + ses
+// Subdivision, pas seulement le texte utile à une Citation.
+export { fetchArticleByIdentifier } from './fetch-article-by-identifier.js';
+// packages/api (11b) : persiste/relit le trace record d'un run du graphe
+// (POST /question) pour GET /trace/:trace_id.
+export { persistTrace, fetchTrace } from './traces.js';

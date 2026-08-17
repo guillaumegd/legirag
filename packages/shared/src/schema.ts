@@ -76,3 +76,39 @@ export const ReponseStructuree = ReponseStructureeObjet.refine(
   path: ['regle_principale'],
 });
 export type ReponseStructuree = z.infer<typeof ReponseStructuree>;
+
+// Item 11b - un pas du graphe fixe (route/search/draft/followRenvois), pas
+// un appel outil individuel : la chaîne fixe (note item 9) ne fait aucun
+// choix d'outil dynamique, donc "tool call" ici = une exécution de nœud.
+// summary reste volontairement non typé nœud par nœud (route: codes choisis,
+// search: nombre de citations, draft: confiance/tentatives, followRenvois:
+// nouvelles citations) - un objet libre plutôt que quatre formes distinctes
+// pour un enregistrement lu bien plus souvent qu'il n'est produit.
+export const ExecutionTraceStep = z.object({
+  node: z.string().min(1),
+  durationMs: z.number().int().nonnegative(),
+  summary: z.record(z.string(), z.unknown()),
+});
+export type ExecutionTraceStep = z.infer<typeof ExecutionTraceStep>;
+
+// Enregistrement minimal (routage, appels d'outils, timing) capturé pendant
+// un run du graphe et servi par GET /trace/:trace_id (project-overview.md,
+// "Execution trace") - relu et revalidé après lecture de la colonne jsonb,
+// jamais fait confiance comme typé en sortie de Postgres (même principe que
+// ReponseStructuree.parse avant l'événement SSE `done`, 11a).
+export const ExecutionTrace = z.object({
+  traceId: z.string().min(1),
+  question: z.string().min(1),
+  dateReference: z.string().date(),
+  codes: z.array(z.string()).optional(),
+  steps: z.array(ExecutionTraceStep),
+  tokenUsage: z
+    .object({
+      promptTokens: z.number().int().nonnegative(),
+      completionTokens: z.number().int().nonnegative(),
+    })
+    .optional(),
+  totalDurationMs: z.number().int().nonnegative(),
+  createdAt: z.string().min(1),
+});
+export type ExecutionTrace = z.infer<typeof ExecutionTrace>;

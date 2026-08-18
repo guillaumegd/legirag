@@ -361,6 +361,15 @@ below closes out what's left of that foundation before data work starts.
   slides and/or an interactive case study demonstrating the index-based
   citation-grounding redesign and the audit-driven fix cycle - interview
   material, built once the rest of the project is further along
+- [x] 15. **Restyle front-end (design handoff)** - report the new visual
+  direction from the design handoff
+  (`packages/web/design_handoff_restyle/`: README.md plus the two `.dc.html`
+  mockups) into the existing Next.js components - oklch color tokens, Libre
+  Franklin typography, a vertical rail treatment for cross-references
+  (replaces the stacked-card `ref-list`/`ref-item`), and the agent trace
+  moved into a slide-in overlay panel reachable from the answer screen while
+  keeping the `/trace/[traceId]` route for direct links; restyle only, no
+  change to data contracts, routes, or the SSE stream
 
 ## Optional, not blocking
 

@@ -12,7 +12,8 @@ export function SupplementaryTexts({ reponse }: { reponse: ReponseStructuree }) 
     <section className="answer-block">
       <h2>Textes complémentaires ({reponse.textes_complementaires.length})</h2>
       <div className="answer-body">
-        <ul className="ref-list">
+        <p className="ref-legend">Nœud plein = même code · anneau pointillé = autre code</p>
+        <ul className="ref-rail">
           {reponse.textes_complementaires.map((texte) => (
             <RefItem
               key={`${texte.article_identifier}-${texte.subdivision}`}

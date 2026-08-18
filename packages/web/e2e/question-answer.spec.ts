@@ -21,9 +21,15 @@ test('asking a real question renders a sourced answer and its trace', async ({ p
   await expect(page.getByRole('heading', { name: 'Règle principale' })).toBeVisible({ timeout: 45_000 });
   await expect(page.locator('.verdict')).not.toBeEmpty();
 
-  const traceLink = page.getByRole('link', { name: 'voir la trace' });
-  await expect(traceLink).toBeVisible();
-  await traceLink.click();
+  const openTraceButton = page.getByRole('button', { name: 'Voir le raisonnement' });
+  await expect(openTraceButton).toBeVisible();
+  await openTraceButton.click();
+
+  const tracePanel = page.getByRole('complementary', { name: "Raisonnement de l'agent" });
+  await expect(tracePanel).toBeVisible();
+  await expect(tracePanel.locator('.trace .step').first()).toBeVisible();
+
+  await tracePanel.getByRole('link', { name: 'Ouvrir la page complète de la trace ↗' }).click();
 
   await expect(page).toHaveURL(/\/trace\//);
   await expect(page.getByRole('heading', { name: 'Trace de l’agent' })).toBeVisible();

@@ -1,5 +1,6 @@
 import type { ReponseStructuree } from '@legirag/shared/schema';
 import { CitationBlock } from './citation-block';
+import { WarningTriangleIcon } from './warning-triangle-icon';
 
 export function MainRule({ reponse }: { reponse: ReponseStructuree }) {
   return (
@@ -23,7 +24,10 @@ function EscaladeNotice({ escalade }: { escalade: ReponseStructuree['escalade'] 
   }
   return (
     <div className="scope-panel">
-      <h2>⚠ Abstention</h2>
+      <h2>
+        <WarningTriangleIcon />
+        <span>Abstention</span>
+      </h2>
       <p>{escalade.motif}</p>
       <p>
         <strong>À qui s'adresser :</strong> {escalade.interlocuteur}

@@ -8,6 +8,7 @@ export type Etat = z.infer<typeof Etat>;
 // R1 : article_identifier et subdivision sont obligatoires, garantis par le type avant le vérificateur
 export const Citation = z.object({
   article_identifier: z.string().min(1),
+  article_num: z.string().min(1),
   subdivision: z.string().min(1),
   code: z.string().min(1),
   texte_exact: z.string().min(1),

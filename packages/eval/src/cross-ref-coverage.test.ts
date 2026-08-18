@@ -5,6 +5,7 @@ import { scoreCrossRefCoverage } from './cross-ref-coverage.js';
 function citation(articleIdentifier: string): Citation {
   return {
     article_identifier: articleIdentifier,
+    article_num: 'test',
     subdivision: 'article entier',
     code: 'code de test',
     texte_exact: 'texte',

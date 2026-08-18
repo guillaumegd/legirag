@@ -102,6 +102,7 @@ describe('buildFixedChainGraph - routage (8b)', () => {
 
 const CITATION_CONNUE: Citation = {
   article_identifier: 'LEGIARTI-CONNU',
+  article_num: 'R413-1',
   subdivision: 'article entier',
   code: 'Code de la route',
   texte_exact: 'texte connu',
@@ -224,6 +225,7 @@ describe('afterFollowRenvois', () => {
 
 const CITATION_DEUX: Citation = {
   article_identifier: 'LEGIARTI-DEUX',
+  article_num: '131-13',
   subdivision: 'I',
   code: 'Code pénal',
   texte_exact: 'texte deux',

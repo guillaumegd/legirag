@@ -3,6 +3,7 @@ import { Citation, ExecutionTrace, ReponseStructuree } from './schema.js';
 
 const citationValide = {
   article_identifier: 'LEGIARTI000006841540',
+  article_num: 'R413-17',
   subdivision: 'I',
   code: 'Code de la route',
   texte_exact: 'Hors agglomération, la vitesse des véhicules est limitée à…',

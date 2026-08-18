@@ -1,0 +1,91 @@
+/* Design tokens ported from prototypes/theme.css (source of truth for
+   colors, type, spacing, radii - keep this block in sync if the prototype
+   changes). */
+:root {
+  /* surfaces */
+  --bg: #ffffff;
+  --bg-alt: #f6f6f9;
+  --surface: #ffffff;
+  --border: #dcdce1;
+  --border-strong: #b8b8c0;
+
+  /* text */
+  --text: #1b1b1f;
+  --muted: #5b5b63;
+  --faint: #8d8d95;
+
+  /* accent */
+  --accent: #22335c;
+  --accent-hover: #182446;
+  --accent-ink: #ffffff;
+  --accent-soft: #e7eaf3;
+
+  /* semantic - legal state and system feedback */
+  --success: #1a7a4c;
+  --success-soft: #e6f2ea;
+  --warning: #a86400;
+  --warning-soft: #faf0e0;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e8;
+  --future: var(--faint);
+
+  /* reference graph */
+  --ref-internal: var(--accent);
+  --ref-internal-soft: var(--accent-soft);
+  --ref-cross-code: #6b4fa0;
+  --ref-cross-code-soft: #efe9f7;
+
+  /* agent trace */
+  --trace-ok: var(--success);
+  --trace-fail: var(--danger);
+  --trace-line: var(--border);
+
+  /* type */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, monospace;
+
+  /* scale */
+  --radius: 4px;
+  --radius-sm: 2px;
+  --shadow: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+}
+
+a {
+  color: var(--accent);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 0.6rem 1rem;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

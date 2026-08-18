@@ -1,4 +1,4 @@
-# legirag ("Le déplieur") - Project Overview
+# legirag - Project Overview
 
 > A French legal AI agent: ask a legal question in plain French, and it identifies
 > the relevant code(s), unfolds the graph of cross-references between articles and
@@ -245,6 +245,25 @@ named yet in the plans.
 
 ## Open questions
 
+- **Direct "what does article X say" questions falsely abstain when the
+  named article isn't surfaced by semantic search** - observed live
+  2026-08-18 with two real questions: "que dit l'Article
+  LEGIARTI000030061736?" and "que dit l'Article 777 du Code général des
+  impôts?" - both returned `confiance: abstention` with "l'article n'est pas
+  présent dans les sources récupérées", even though the article may well
+  exist in the corpus (`code-general-des-impots` is one of the 5 ingested
+  demo codes per the note below). The agent's only tools (item 7:
+  `chercher_droit`, `suivre_renvoi`, `router_question`, `calculer`,
+  `demander_a_l_humain`) all route through semantic/hybrid retrieval or
+  cross-reference following - there is no direct "fetch article by
+  identifier or article number" tool the agent can call when the user
+  already names the exact article, unlike the front end's own
+  `GET /article/:articleIdentifier` (used only by the Step 6 in-place
+  expander, not exposed to the agent). Needs investigation before deciding
+  the fix: confirm whether these two articles are actually in the indexed
+  `chunks` table first (retrieval miss vs. genuine ingestion gap), then
+  likely add a direct-lookup tool/path for exact-article questions as a
+  follow-up to item 7 or a 6d-adjacent retrieval fix.
 - **Item 10 must revisit 4c's blanket `ABROGE` block** - the RLS
   `article_visible()` function hides any `ABROGE` row unconditionally today
   (no historical rows exist yet, so this is a safe interim default, not a

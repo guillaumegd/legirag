@@ -12,6 +12,7 @@ export const SUBDIVISION_ARTICLE_ENTIER = 'article entier';
 export function toCitation(article: ArticleForCitation): Citation {
   return {
     article_identifier: article.articleIdentifier,
+    article_num: article.articleNum,
     subdivision: article.subdivisionLabel ?? SUBDIVISION_ARTICLE_ENTIER,
     code: article.code,
     texte_exact: article.texteExact,

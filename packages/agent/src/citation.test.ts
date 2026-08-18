@@ -44,4 +44,8 @@ describe('toCitation', () => {
     expect(citation.etat).toBe('VIGUEUR');
     expect(citation.date_debut).toBe('2014-01-10');
   });
+
+  it('reprend article_num tel quel', () => {
+    expect(toCitation(ARTICLE_ENTIER).article_num).toBe('R413-3');
+  });
 });

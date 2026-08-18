@@ -316,7 +316,7 @@ below closes out what's left of that foundation before data work starts.
       explicit approval in chat, same guardrail `/release` already follows
       for deploys - writing the `.tf` config itself is fine, applying it
       is not.
-- [ ] 13. **Front end and reliability case study** - the question/answer
+- [x] 13. **Front end and reliability case study** - the question/answer
   screen with the unfolding reference graph, the time-travel view, and the
   agent-trace view; an end-to-end smoke test of the full question-to-answer
   path; and the published write-up of the measurement results (baseline vs.
@@ -330,15 +330,15 @@ below closes out what's left of that foundation before data work starts.
     textes-complémentaires graph (cross-code references visually distinct),
     and the always-visible hors-périmètre panel, per
     `prototypes/question-answer.html`
-  - [ ] 13b. **Agent-trace view** - a route reachable from the answer
+  - [x] 13b. **Agent-trace view** - a route reachable from the answer
     screen's trace link, fetching `GET /trace/:traceId` and rendering the
     chronological technical view (routing decision, every tool/model call
     with duration and result, failures and recovery, the stop criterion)
     per `prototypes/agent-trace.html`
-  - [ ] 13c. **End-to-end smoke test** - a scripted or Playwright check of
+  - [x] 13c. **End-to-end smoke test** - a scripted or Playwright check of
     the full question-to-answer path against the running front end and
     containerized API
-  - [ ] 13d. **Reliability case study write-up** - the published
+  - [x] 13d. **Reliability case study write-up** - the published
     measurement write-up: retrieval baseline vs. improvements (6a-6c), agent
     quality metrics (9a-9c), cost and latency, and the fixed-chain (8a) vs.
     full agentic-loop comparison

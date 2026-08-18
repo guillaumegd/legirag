@@ -20,12 +20,12 @@ function getNumber(data: unknown, key: string): number | undefined {
 // Les slugs de code (ex. "code-de-la-route") perdent les accents et la
 // casse officielle - suffisant pour une ligne de statut temporaire, la
 // citation affichée ensuite porte le vrai nom du code (champ `code`).
-function humanizeCodeSlug(slug: string): string {
+export function humanizeCodeSlug(slug: string): string {
   const spaced = slug.replace(/-/g, ' ');
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-function pluralize(count: number, singular: string, plural: string): string {
+export function pluralize(count: number, singular: string, plural: string): string {
   return count > 1 ? plural : singular;
 }
 

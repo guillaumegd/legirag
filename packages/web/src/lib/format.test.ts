@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatConfianceBadge, formatDateFr, formatEtatBadge, formatMotifPresence } from './format.js';
+import { asConfiance, formatConfianceBadge, formatDateFr, formatDurationMs, formatEtatBadge, formatMotifPresence } from './format.js';
 
 describe('formatEtatBadge', () => {
   it('maps VIGUEUR to the success badge', () => {
@@ -42,5 +42,31 @@ describe('formatMotifPresence', () => {
     expect(formatMotifPresence('exception')).toBe('exception');
     expect(formatMotifPresence('cas_particulier')).toBe('cas particulier');
     expect(formatMotifPresence('condition')).toBe('condition');
+  });
+});
+
+describe('formatDurationMs', () => {
+  it('renders sub-second durations in milliseconds', () => {
+    expect(formatDurationMs(180)).toBe('180 ms');
+    expect(formatDurationMs(999)).toBe('999 ms');
+  });
+
+  it('renders durations of a second or more in seconds with a French decimal comma', () => {
+    expect(formatDurationMs(1000)).toBe('1,0 s');
+    expect(formatDurationMs(6420)).toBe('6,4 s');
+  });
+});
+
+describe('asConfiance', () => {
+  it('accepts each known confiance value', () => {
+    expect(asConfiance('elevee')).toBe('elevee');
+    expect(asConfiance('moyenne')).toBe('moyenne');
+    expect(asConfiance('abstention')).toBe('abstention');
+  });
+
+  it('rejects anything else, including undefined and unrelated strings', () => {
+    expect(asConfiance(undefined)).toBeUndefined();
+    expect(asConfiance('garbage')).toBeUndefined();
+    expect(asConfiance(null)).toBeUndefined();
   });
 });

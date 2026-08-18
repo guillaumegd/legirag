@@ -25,6 +25,15 @@ export function formatConfianceBadge(confiance: Confiance): Badge {
   return CONFIANCE_BADGES[confiance];
 }
 
+const CONFIANCE_VALUES: readonly Confiance[] = ['elevee', 'moyenne', 'abstention'];
+
+// Un ExecutionTraceStep.summary est un z.record(z.unknown()) (schema.ts) -
+// ce garde-fou est ce qui permet de repasser un champ confiance non typé par
+// formatConfianceBadge sans forcer un `as Confiance` à l'aveugle.
+export function asConfiance(value: unknown): Confiance | undefined {
+  return CONFIANCE_VALUES.includes(value as Confiance) ? (value as Confiance) : undefined;
+}
+
 const MOTIF_LABELS: Record<MotifPresence, string> = {
   renvoi_explicite: 'renvoi explicite',
   exception: 'exception',
@@ -34,6 +43,19 @@ const MOTIF_LABELS: Record<MotifPresence, string> = {
 
 export function formatMotifPresence(motif: MotifPresence): string {
   return MOTIF_LABELS[motif];
+}
+
+// Sous la seconde en millisecondes entiers (lisibles tels quels pour un
+// appel individuel), au-delà en secondes à une décimale, virgule française.
+export function formatDurationMs(durationMs: number): string {
+  if (durationMs < 1000) {
+    return `${durationMs} ms`;
+  }
+  const seconds = (durationMs / 1000).toLocaleString('fr-FR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return `${seconds} s`;
 }
 
 // "2011-06-30" -> "30/06/2011", le format du prototype (question-answer.html).

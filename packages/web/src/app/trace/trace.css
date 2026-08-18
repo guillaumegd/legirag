@@ -1,0 +1,136 @@
+.trace-page .context-line {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.trace-page .context-line code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.trace-page h1 {
+  font-size: 1.3rem;
+  margin: 0 0 0.5rem;
+}
+
+.trace-page .totals {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.trace-page .totals strong {
+  color: var(--text);
+}
+
+.trace-page .result-box {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+  padding: 1rem 1.15rem;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+}
+
+.trace-page .result-box h2 {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.trace {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.trace::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--trace-line);
+}
+
+.step {
+  position: relative;
+  padding: 0 0 1.4rem 2.6rem;
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+.step-dot {
+  position: absolute;
+  left: 5px;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--trace-ok);
+}
+
+.step-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.step-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.step-duration {
+  font-size: 0.8rem;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.step-result {
+  font-size: 0.86rem;
+  margin-top: 0.25rem;
+}
+
+.step-calls {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.step-calls li {
+  padding: 0.15rem 0;
+}
+
+.call-kind {
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
+.call-name {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.call-tokens {
+  color: var(--faint);
+}

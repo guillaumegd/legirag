@@ -14,5 +14,14 @@ This project uses the [AI Coding Blueprint](blueprint/README.md) workflow.
 - Typecheck: `pnpm typecheck`
 - Test: `pnpm test`
 
-No dev server yet — the `web` package (Next.js, DSFR-inspired UI) and `api` package (NestJS)
-are still stubs, scheduled later in the roadmap.
+`web` (Next.js, DSFR-inspired UI) has a real dev server now - the question/answer
+screen and the agent-trace view - and `api` (NestJS) and `mcp` are built and deployed.
+See `AGENTS.md`'s Commands section for the full list, including the Playwright
+end-to-end smoke test.
+
+## Reliability
+
+See [`docs/reliability-case-study.md`](docs/reliability-case-study.md) for how
+this project measures itself: retrieval quality baseline vs. improvements, agent
+quality metrics (routing, cross-reference coverage, abstention), cost and latency,
+and what the full agentic loop adds over a minimal search-and-draft pipeline.

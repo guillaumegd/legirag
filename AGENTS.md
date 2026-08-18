@@ -107,14 +107,21 @@ checks do not make the Blueprint unusable.
 
 ## Commands
 
-TypeScript monorepo (pnpm workspaces: `packages/*`). No dev server yet - `web`
-(Next.js, DSFR-inspired UI, planned) is still a stub; `api` (NestJS) and `mcp`
-are built and deployed (see Deploy below).
+TypeScript monorepo (pnpm workspaces: `packages/*`). `web` (Next.js,
+DSFR-inspired UI) has a real dev server now (question/answer screen and
+agent-trace view); `api` (NestJS) and `mcp` are built and deployed (see
+Deploy below).
 
 - Build: `pnpm build`
 - Lint: `pnpm lint`
 - Typecheck: `pnpm typecheck`
 - Test: `pnpm test` (Vitest, runs `packages/*/src/**/*.test.ts`)
+- E2E smoke test: `pnpm --filter @legirag/web test:e2e` (Playwright, runs
+  `packages/web/e2e/*.spec.ts` through a real browser against an already
+  running `web` dev server and `api` instance - `api` claims the port 3000
+  Next.js defaults to, so run `web` on another port, e.g. `pnpm --filter
+  @legirag/web dev --port 3001`, and set `E2E_BASE_URL` if you pick a port
+  other than the config's `3001` fallback)
 - Deploy: `pnpm deploy:bootstrap` (first deploy on a clean AWS account),
   `pnpm deploy:images` (redeploy after a code change), `pnpm deploy:secrets`
   (push `.env.prod` to the real secret) - see `infra/README.md` for the full

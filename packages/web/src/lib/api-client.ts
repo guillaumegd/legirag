@@ -1,4 +1,5 @@
 import type { Article, Subdivision } from '@legirag/shared/types';
+import type { ExecutionTrace } from '@legirag/shared/schema';
 import { createSseParser, type SseEvent } from './sse';
 
 export interface AskQuestionInput {
@@ -67,4 +68,18 @@ export async function fetchArticle(
     throw new Error(`La lecture de l'article a échoué (${response.status}).`);
   }
   return (await response.json()) as ArticleWithSubdivisions;
+}
+
+// undefined = trace introuvable (404, GET /trace/:traceId) - un état normal
+// à afficher (même convention que fetchArticle), pas une panne.
+export async function fetchTrace(traceId: string): Promise<ExecutionTrace | undefined> {
+  const response = await fetch(`${apiUrl()}/trace/${encodeURIComponent(traceId)}`);
+
+  if (response.status === 404) {
+    return undefined;
+  }
+  if (!response.ok) {
+    throw new Error(`La lecture de la trace a échoué (${response.status}).`);
+  }
+  return (await response.json()) as ExecutionTrace;
 }

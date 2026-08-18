@@ -13,6 +13,10 @@ name: Eval regression check
 # Non provisionnables depuis ce dépôt - action manuelle, même catégorie que
 # le plafond de facturation AWS documenté dans project-overview.md.
 
+concurrency:
+  group: eval-regression-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:

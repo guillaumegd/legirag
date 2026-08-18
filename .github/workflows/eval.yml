@@ -8,7 +8,7 @@ name: Eval regression check
 # Secrets requis dans les paramètres GitHub Actions du dépôt (mêmes noms que
 # .env.example) avant que ce check puisse passer en réel :
 #   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION,
-#   MODEL_VOLUME, MODEL_ESCALADE,
+#   MODEL_VOLUME, MODEL_ESCALADE, MODEL_EMBEDDING,
 #   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, DATABASE_URL
 # Non provisionnables depuis ce dépôt - action manuelle, même catégorie que
 # le plafond de facturation AWS documenté dans project-overview.md.
@@ -58,6 +58,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           MODEL_VOLUME: ${{ secrets.MODEL_VOLUME }}
           MODEL_ESCALADE: ${{ secrets.MODEL_ESCALADE }}
+          MODEL_EMBEDDING: ${{ secrets.MODEL_EMBEDDING }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

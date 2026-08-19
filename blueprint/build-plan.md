@@ -371,6 +371,112 @@ below closes out what's left of that foundation before data work starts.
   keeping the `/trace/[traceId]` route for direct links; restyle only, no
   change to data contracts, routes, or the SSE stream
 
+## Immediate priorities (found/flagged 2026-08-19)
+
+16-19 found while diagnosing a live demo-blocking failure on "Puis-je
+rouler à 140 sur l'autoroute ?"; 20 flagged separately by the user the same
+day. All take priority over resuming 6d or item 10. Spec each explicitly
+(`/feature 16`, `/feature 17`, ...) since a no-argument `/feature` should
+keep resuming 6d/10's already-stalled work rather than jump here.
+
+- [ ] 16. **Restore valid Bedrock credentials in prod** - the `legirag/app-env`
+  Secrets Manager secret was pushed with real `AWS_ACCESS_KEY_ID`/
+  `AWS_SECRET_ACCESS_KEY` via `infra/push-secrets.sh` (confirmed applied -
+  secret `LastChangedDate` updated to `2026-08-19T03:34:25+01:00`), but both
+  Lambdas (`legirag-api`, `legirag-mcp`) were still warm and only read the
+  secret at cold start (`infra/docker/lambda-entrypoint.mjs`), so every
+  Bedrock call kept failing with `APICallError: The security token included
+  in the request is invalid` (confirmed in `/aws/lambda/legirag-api`
+  CloudWatch logs, in both the `route` and `draft` nodes of
+  `packages/agent/src/graph.ts`) even after the push. Force fresh cold
+  starts (redeploy via `pnpm deploy:images`, or an
+  `aws lambda update-function-configuration` no-op touch on both functions),
+  then confirm via CloudWatch logs (`filter-log-events` on
+  `"security token"`) and by replaying the "140 km/h" question end-to-end.
+- [ ] 17. **Separate paid and free-route quotas** -
+  `PersistentRateLimitGuard` (`packages/api/src/common/persistent-rate-limit.guard.ts`),
+  wired globally via `APP_GUARD`, applies the same strict per-IP budget
+  (`RATE_LIMIT_PER_MINUTE_PER_IP` default 1, `RATE_LIMIT_PER_DAY_PER_IP`
+  default 10) to every non-`@Public()` route, including free reads like
+  `GET /trace/:traceId` and `GET /article/:articleIdentifier` that make no
+  LLM/paid-API call - only `POST /question` also carries the separate
+  `DailyCostCapGuard` (token budget). Effect: asking one question exhausts
+  the minute's budget, so opening the trace view right after gets rejected
+  with 429. Distinguish cost-bearing routes (keep the strict quota) from
+  free reads (looser or no per-IP quota) - a reviewer should be able to ask
+  a question and then freely inspect its trace/cited articles without
+  hitting a wall.
+- [ ] 18. **Client-side local history of questions, answers, and traces** -
+  a browser-only (localStorage or similar) history letting a returning
+  visitor revisit questions already asked, their structured answers, and
+  the associated trace, without re-asking (and re-spending quota/tokens).
+  No backend persistence, no accounts - matches the project's existing "no
+  accounts, anonymous, trace addressed by `trace_id`" model. Primary use
+  case: demos, so a reviewer isn't blocked by item 17's quota when
+  replaying already-asked questions.
+- [ ] 19. **Surface the real error behind the generic
+  verification-failure abstention** - `packages/agent/src/graph.ts`'s
+  `draft()` node (`MAX_DRAFT_ATTEMPTS = 2`) catches any exception generically
+  and always emits the same "vérification des citations a échoué"
+  abstention message; the real error (credentials, Bedrock throttling, a
+  genuine verification failure - all indistinguishable today) is only ever
+  logged via `console.error`, never persisted in the `AgentCall`/trace
+  record. Record enough of the real error (type/message, not the full
+  stack) in the trace so a failure like item 16's is diagnosable from the
+  trace/logs alone next time, without an ad hoc CloudWatch dig.
+- [ ] 20. **Upgrade to Node 24** - every pin in the repo is still on Node 20,
+  with no `.nvmrc` for local nvm use: root `package.json` `engines.node`
+  (`">=20"`), `.github/workflows/ci.yml:20` and `.github/workflows/eval.yml:59`
+  (`node-version: 20`), `packages/api/Dockerfile` and
+  `packages/mcp/Dockerfile` (`FROM node:20-slim` in both their build and
+  runtime stages), and `@types/node` pinned to `^20.16.0` in root
+  `package.json` and `packages/web/package.json`. Bump all of these to 24,
+  add a root `.nvmrc` (`24`) so local `nvm use` matches, and reinstall to
+  update `pnpm-lock.yaml`. Also check Vercel's Node.js Version project
+  setting for `packages/web` (dashboard, or via `engines.node` in its
+  `package.json` - no version currently pinned there) - Vercel's supported
+  major versions can lag behind the latest LTS, so confirm 24 is actually
+  selectable before relying on it; this is a remote dashboard check outside
+  what `/feature`'s local changes can verify.
+- [ ] 21. **Wire up release-please, enforce conventional commits** - git
+  history already reads as conventional commits by convention (`feat(web):`,
+  `fix(ci):`, `chore:`, `docs:` - see recent `git log`; already documented
+  as a rule in `blueprint/context/ai-interaction.md`'s Commits section) but
+  nothing enforces it and no release automation exists yet - no
+  `release-please-config.json`/manifest, no `.github/workflows/release-please.yml`,
+  no commitlint/husky. Single repo-wide version (confirmed 2026-08-19): this
+  is a demo project with no packages published independently to npm, so
+  release-please tracks one version/changelog/tag for the whole repo rather
+  than a per-package manifest.
+  - [x] 21a. **release-please workflow and config** - add a root `version`
+    field to `package.json`, `release-please-config.json` +
+    `.release-please-manifest.json` in single-package (`"."`) simple mode,
+    and `.github/workflows/release-please.yml` (`googleapis/release-please-action@v4`,
+    triggered on push to `main`, with the `contents: write` /
+    `pull-requests: write` permissions release-please needs to open its
+    release PR - a deliberate, documented exception to `AGENTS.md`'s
+    `contents: read`-by-default rule for CI, since opening PRs and creating
+    releases/tags is this workflow's entire job)
+  - [ ] 21b. **Commitlint enforcement** - a Husky `commit-msg` hook plus a
+    commitlint GitHub Actions check on PR commits/title, using
+    `@commitlint/config-conventional`, so non-conventional commits are
+    caught locally and on PRs before they can reach `main` and confuse
+    release-please's changelog generation
+- [ ] 22. **Mirror every build-plan feature as a GitHub issue** - for a
+  clean, browsable history alongside `blueprint/history/features/`. `gh` is
+  already authenticated against `origin` (`guillaumegd/legirag`, `repo`
+  scope present) and the repo currently has zero issues (`gh issue list`
+  empty). Two parts: (1) a one-time backfill creating one issue per
+  existing build-plan item (1-21 at time of writing), closed for items
+  already checked off (link back to their `blueprint/history/features/NN-*.md`
+  archive and squash-merge commit) and open for unchecked ones; (2) wire
+  `/feature` and `/complete` going forward so `/feature` opens or reuses the
+  matching issue when it writes a spec and `/complete` closes it, referencing
+  the merge commit, when it archives and merges. Part 2 changes shared
+  workflow behavior, so per `AGENTS.md`'s cross-tool rule it must update the
+  `feature`/`complete` skill in **both** `.claude/skills/` and
+  `.agents/skills/` adapters, not just one.
+
 ## Optional, not blocking
 
 Cut first if time runs short, in this order: an automation workflow calling

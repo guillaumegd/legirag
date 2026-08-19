@@ -3,8 +3,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { requireEnv } from '@legirag/shared';
-import { SupabaseRetriever } from '@legirag/retrieval';
+import { extractClientIp, requireEnv, verifyAccessToken } from '@legirag/shared';
+import { SupabaseRetriever, checkRateLimit } from '@legirag/retrieval';
 import { CalculerInput, DemanderALHumainInput, calculer, demanderALHumain, routerQuestion, suivreRenvoi } from '@legirag/agent';
 import { toRequeteRecherche, toToolContent } from './chercher-droit.js';
 import { analyserDocumentDescription } from './descriptions/analyser-document.js';
@@ -116,8 +116,11 @@ export async function startServer(port = Number(process.env.MCP_PORT ?? DEFAULT_
   // Échoue vite (F-03) : SupabaseRetriever ne lit DATABASE_URL que lors du
   // premier vrai appel de chercher_droit (dans search()), donc sans ce
   // contrôle explicite ici, un serveur mal configuré se dit "à l'écoute" et
-  // ne révèle le problème qu'à la première question posée.
+  // ne révèle le problème qu'à la première question posée. Même raisonnement
+  // pour LEGIRAG_ACCESS_TOKEN (fix, 2026-08-19) : verifyAccessToken() ne le
+  // lit qu'à la première requête reçue, sinon.
   requireEnv('DATABASE_URL');
+  requireEnv('LEGIRAG_ACCESS_TOKEN');
 
   // Mode sans état (pas de sessionIdGenerator) : une requête HTTP = un
   // échange complet, aucune session à tenir. Le SDK impose en retour qu'un
@@ -134,7 +137,22 @@ export async function startServer(port = Number(process.env.MCP_PORT ?? DEFAULT_
   console.log(`Serveur MCP legirag à l'écoute sur http://localhost:${port}`);
 }
 
+// Mêmes garde-fous que packages/api (fix, 2026-08-19) : ce serveur n'est
+// plus public pour des agents tiers (décision produit actée), seul le front
+// legirag l'appelle désormais via son token partagé.
 async function handleMcpRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  if (!verifyAccessToken(req.headers.authorization)) {
+    res.writeHead(401, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'Unauthorized' }));
+    return;
+  }
+
+  const ip = extractClientIp(req.headers, req.socket.remoteAddress);
+  const { allowed } = await checkRateLimit(ip);
+  if (!allowed) {
+    res.writeHead(429, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'Too Many Requests' }));
+    return;
+  }
+
   try {
     const mcpServer = createLegiragMcpServer();
     // Mode sans état : ne pas passer sessionIdGenerator du tout (au lieu de

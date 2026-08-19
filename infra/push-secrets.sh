@@ -44,7 +44,7 @@ payload=$(node -e '
     if ((v.startsWith("\"") && v.endsWith("\"")) || (v.startsWith("\x27") && v.endsWith("\x27"))) v = v.slice(1, -1);
     env[t.slice(0, i).trim()] = v;
   }
-  const keys = ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY","AWS_REGION","MODEL_VOLUME","MODEL_ESCALADE","MODEL_EMBEDDING","SUPABASE_URL","SUPABASE_ANON_KEY","SUPABASE_SERVICE_ROLE_KEY","DATABASE_URL"];
+  const keys = ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY","AWS_REGION","MODEL_VOLUME","MODEL_ESCALADE","MODEL_EMBEDDING","SUPABASE_URL","SUPABASE_ANON_KEY","SUPABASE_SERVICE_ROLE_KEY","DATABASE_URL","LEGIRAG_ACCESS_TOKEN"];
   const missing = keys.filter((k) => !env[k]);
   if (missing.length > 0) {
     console.error("Clés manquantes dans " + process.argv[1] + " : " + missing.join(", "));

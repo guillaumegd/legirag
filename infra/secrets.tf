@@ -52,6 +52,10 @@ resource "aws_secretsmanager_secret_version" "app_env" {
     SUPABASE_ANON_KEY         = "REPLACE_ME"
     SUPABASE_SERVICE_ROLE_KEY = "REPLACE_ME"
     DATABASE_URL              = "REPLACE_ME"
+    # Fix (2026-08-19) : exigé par packages/api et packages/mcp
+    # (verifyAccessToken, @legirag/shared) - même valeur que celle
+    # configurée côté serveur Vercel (LEGIRAG_ACCESS_TOKEN).
+    LEGIRAG_ACCESS_TOKEN = "REPLACE_ME"
   })
 
   lifecycle {

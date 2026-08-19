@@ -1,18 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { TokenUsage } from '@legirag/agent';
+import { readPositiveNumberEnv } from '@legirag/shared';
 import { DailyTokenBudget } from './daily-token-budget.js';
 
 // Pas de requireEnv ici : contrairement aux ids de modèle/identifiants
 // (config requise, doit échouer vite si absente), un seuil de coût a une
 // valeur de repli sûre - même précédent que PORT dans main.ts.
 const DEFAULT_MAX_DAILY_TOKENS = 2_000_000;
-
-function readMaxDailyTokens(): number {
-  const raw = process.env.MAX_DAILY_TOKENS;
-  if (raw === undefined) return DEFAULT_MAX_DAILY_TOKENS;
-  const parsed = Number(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_DAILY_TOKENS;
-}
 
 function todayUtc(): string {
   return new Date().toISOString().slice(0, 10);
@@ -23,7 +17,10 @@ function todayUtc(): string {
 // même traitement que ThrottlerModule dans app.module.ts.
 @Injectable()
 export class CostGuardService {
-  private readonly budget = new DailyTokenBudget({ maxDailyTokens: readMaxDailyTokens(), today: todayUtc });
+  private readonly budget = new DailyTokenBudget({
+    maxDailyTokens: readPositiveNumberEnv('MAX_DAILY_TOKENS', DEFAULT_MAX_DAILY_TOKENS),
+    today: todayUtc,
+  });
 
   isOverBudget(): boolean {
     return this.budget.isOverBudget();

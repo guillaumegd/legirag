@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b",
-    "validate:search": "tsx --env-file=../../.env src/validate-search.ts"
+    "validate:search": "tsx --env-file=../../.env src/validate-search.ts",
+    "reset-rate-limits": "tsx --env-file=../../.env src/reset-rate-limits.ts"
   },
   "dependencies": {
     "@legirag/shared": "workspace:*",

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { fetchTrace } from '../../../lib/api-client';
+import { fetchTraceServer } from '../../../lib/api-proxy';
 import { summarizeTrace } from '../../../lib/trace-summary';
 import { asConfiance, formatConfianceBadge, formatDurationMs } from '../../../lib/format';
 import { TraceTimeline } from '../../../components/trace-timeline';
@@ -14,7 +14,7 @@ export default async function TracePage({ params }: TracePageProps) {
 
   let trace;
   try {
-    trace = await fetchTrace(traceId);
+    trace = await fetchTraceServer(traceId);
   } catch {
     return (
       <main id="main" className="wrap">

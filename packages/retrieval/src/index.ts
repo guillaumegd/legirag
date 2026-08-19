@@ -19,3 +19,8 @@ export { fetchArticleByIdentifier } from './fetch-article-by-identifier.js';
 // packages/api (11b) : persiste/relit le trace record d'un run du graphe
 // (POST /question) pour GET /trace/:trace_id.
 export { persistTrace, fetchTrace } from './traces.js';
+// Partagé par packages/api et packages/mcp : rate-limit par IP persisté en
+// base (fix, 2026-08-19), remplace un compteur en mémoire peu fiable sur
+// Lambda multi-instance.
+export { checkRateLimit } from './rate-limit.js';
+export type { RateLimitResult } from './rate-limit.js';

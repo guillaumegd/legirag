@@ -1,27 +1,20 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AccessTokenGuard } from './common/access-token.guard.js';
+import { PersistentRateLimitGuard } from './common/persistent-rate-limit.guard.js';
 import { ArticleModule } from './article/article.module.js';
 import { HealthController } from './health/health.controller.js';
 import { QuestionModule } from './question/question.module.js';
 import { TraceModule } from './trace/trace.module.js';
 
-// Limite fixe (pas de variable d'env) - même raisonnement que
-// MAX_RENVOI_ITERATIONS/TOP_K dans packages/agent : une constante de code,
-// pas un réglage opérationnel exposé. 20 req/min/IP, stockage en mémoire
-// (défaut du package) - correct uniquement pour le déploiement mono-
-// processus visé par l'item 11d, pas pour plusieurs instances.
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_REQUESTS = 20;
-
 @Module({
-  imports: [
-    ThrottlerModule.forRoot([{ ttl: RATE_LIMIT_WINDOW_MS, limit: RATE_LIMIT_MAX_REQUESTS }]),
-    QuestionModule,
-    ArticleModule,
-    TraceModule,
-  ],
+  imports: [QuestionModule, ArticleModule, TraceModule],
   controllers: [HealthController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    // Ordre voulu : le token avant le rate-limit, pour qu'une requête non
+    // authentifiée ne consomme pas de budget (packages/api/src/common/*.guard.ts).
+    { provide: APP_GUARD, useClass: AccessTokenGuard },
+    { provide: APP_GUARD, useClass: PersistentRateLimitGuard },
+  ],
 })
 export class AppModule {}

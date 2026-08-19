@@ -143,8 +143,12 @@ keys `push-secrets.sh` requires (it fails loudly if any are missing, rather
 than pushing an incomplete secret): `AWS_ACCESS_KEY_ID`,
 `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `MODEL_VOLUME`, `MODEL_ESCALADE`,
 `MODEL_EMBEDDING`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
-`SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL` - the same set `.env.example`
-documents, minus `COHERE_API_KEY` (see **What's deliberately not here**).
+`SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `LEGIRAG_ACCESS_TOKEN` - the
+same set `.env.example` documents, minus `COHERE_API_KEY` (see **What's
+deliberately not here**). `LEGIRAG_ACCESS_TOKEN` also has to be set, identical, on the Vercel project
+as a server-only env var (never `NEXT_PUBLIC_*`) - both functions now reject
+any request without it (fix, 2026-08-19), and the front end's `app/api/*`
+routes are the only thing meant to call them directly.
 
 ## Verifying it works
 
@@ -155,16 +159,23 @@ Expect `{"status":"ok"}`. The first request after any period of inactivity
 takes 15-25 seconds (cold start - the container has to boot); a second
 request right after is well under a second.
 
-The MCP function is harder to eyeball: it speaks the MCP Streamable HTTP
-protocol, not plain REST, so a bare request without the right headers gets
-rejected on purpose:
+Every other route on both functions now requires
+`Authorization: Bearer <LEGIRAG_ACCESS_TOKEN>` (fix, 2026-08-19) - a bare
+request gets `{"message":"Unauthorized","statusCode":401}` (API) or
+`{"error":"Unauthorized"}` (MCP) instead of reaching any real logic. That
+401 *is* the guard working, not a bug to chase.
+
+The MCP function is harder to eyeball beyond that: it speaks the MCP
+Streamable HTTP protocol, not plain REST, so even a request with the right
+token but without the right headers gets rejected on purpose:
 ```
-curl $(terraform -chdir=infra output -raw mcp_function_url)
+curl -H "Authorization: Bearer <LEGIRAG_ACCESS_TOKEN>" \
+  $(terraform -chdir=infra output -raw mcp_function_url)
 ```
 Expect `{"jsonrpc":"2.0","error":{"code":-32000,"message":"Not Acceptable: Client must accept text/event-stream"}...}`
 with HTTP 406 - that response *is* the function working correctly (proof
-it's alive and enforcing its real protocol), not an error to chase. Testing
-it properly needs a real MCP client, not curl.
+it's alive, past the token check, and enforcing its real protocol), not an
+error to chase. Testing it properly needs a real MCP client, not curl.
 
 To confirm the whole pipeline end to end (routing, real vector search
 against Supabase, drafting, verification), send a real question - this
@@ -172,6 +183,7 @@ makes real Bedrock calls and costs a small, real amount:
 ```
 curl -N -X POST $(terraform -chdir=infra output -raw api_function_url)question \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <LEGIRAG_ACCESS_TOKEN>" \
   -d '{"question": "<a real legal question>", "dateReference": "2026-01-01"}'
 ```
 A streamed response ending in a `done` event is success, whatever the

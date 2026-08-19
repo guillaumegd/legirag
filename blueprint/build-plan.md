@@ -462,7 +462,7 @@ keep resuming 6d/10's already-stalled work rather than jump here.
     `@commitlint/config-conventional`, so non-conventional commits are
     caught locally and on PRs before they can reach `main` and confuse
     release-please's changelog generation
-- [ ] 22. **Mirror every build-plan feature as a GitHub issue** - for a
+- [x] 22. **Mirror every build-plan feature as a GitHub issue** - for a
   clean, browsable history alongside `blueprint/history/features/`. `gh` is
   already authenticated against `origin` (`guillaumegd/legirag`, `repo`
   scope present) and the repo currently has zero issues (`gh issue list`

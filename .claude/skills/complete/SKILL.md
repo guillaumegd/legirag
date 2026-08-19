@@ -120,9 +120,40 @@ and tests, must pass first.
    the feature lands as one clean commit regardless of how many checkpoints the
    branch carried.
 2. Delete the branch after a clean merge.
-3. Stop and ask whether to push local `main` to its upstream. The merge approval
+3. Close the matching GitHub issue, if one exists. Applies to features and
+   fixes, not rollbacks. If the repo has a GitHub remote and `gh auth status`
+   is authenticated, search `gh issue list --state all --json number,title` for
+   the exact title `/feature`/`/fix` would have opened or reused: `"<N>.
+   <Title>"` or `"<N><letter>. <Title>"` for a feature, `"Fix: <Title>"` for a
+   fix. If found:
+   - First replace its body with the finished archive's full content. The
+     body `/feature`/`/fix` wrote when opening the issue was necessarily a
+     snapshot of the in-progress spec; the archive just written in Step 1 is
+     the final, accurate record - a closed issue should hold that, not the
+     interim draft. This is also the first time the real squash-merge commit
+     is known. Compose the new body in a temp file - do not point
+     `--body-file` straight at the archive path, the header below has to be
+     added first - as: a one-line header `**<scope>** - closed,
+     squash-merged as <commit link>.`, then `---`, then the archive's own
+     content verbatim, with one exception: if the archive has a `## Build
+     loop` section, drop it **only when its content is exactly the generic
+     Blueprint-workflow boilerplate** (compare against
+     `scripts/backfill-github-issues.sh`'s `BUILD_LOOP_BOILERPLATE` constant,
+     if that script exists in this repo) - some archives customize that
+     section with real, feature-specific warnings (for example 4b's note that
+     its first build step deletes most of the live database), and those must
+     never be silently dropped. Then write it with `gh issue edit <number>
+     --body-file <tmp file>` - `--body-file`, not `--body`, so the archive's
+     own backticks/`$`/quotes are never re-parsed by the shell.
+   - Then close it: `gh issue close <number> --comment "..."` naming the
+     commit (`git rev-parse HEAD` on `main` right after the merge in step 1,
+     not the branch's pre-merge commit - squashing creates a new commit hash).
+
+   Skip silently, without failing this step, if no matching issue exists,
+   there's no GitHub remote, or `gh` isn't authenticated.
+4. Stop and ask whether to push local `main` to its upstream. The merge approval
    does not count as push approval.
-4. Push main only after a separate explicit yes to push main in the current chat.
+5. Push main only after a separate explicit yes to push main in the current chat.
    If the repo has no remote or upstream, say so instead of guessing.
 
 Then point the user at `/feature`, `/fix`, or `/rollback` for the next thing.

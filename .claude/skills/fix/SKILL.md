@@ -43,6 +43,26 @@ is being built now, feature or fix). Keep it lighter than a feature spec:
   big to read. Each ends with an observable "done when".
 - **Verify** - how to confirm it's fixed (what to click or test).
 
+**Open or reuse the matching GitHub issue.** If the repo has a GitHub remote
+(`git remote get-url origin`) and `gh auth status` is authenticated, search `gh
+issue list --state all --json number,title` for an exact title match: `"Fix:
+<Title>"`, using the same Title text just written above (same convention
+`scripts/backfill-github-issues.sh` uses for archived fixes, if that backfill
+script exists in this repo). If found, reuse it - `gh issue reopen` it first if
+it's closed and being re-spec'd. If not found, create it with `gh issue create
+--title "Fix: <Title>" --body "..." --label fix` (standalone, no `--parent` -
+fixes aren't build-plan sub-items).
+
+The body must be self-contained, not a bare link to `current-feature.md` -
+compose it from the fix spec just written: The problem and The fix sections
+verbatim. `/complete` overwrites this body with the finished archive's full
+content once the fix is done - see its merge step - so this initial body only
+needs to be accurate for right now, not exhaustive.
+
+State the issue number when announcing the fix. Skip this step entirely,
+without failing the spec, when there is no GitHub remote or `gh` isn't
+authenticated - just note that GitHub issue mirroring is unavailable.
+
 Then stop. Tell the user to review the fix spec, then run `/implement` to build it.
 
 ## Rules

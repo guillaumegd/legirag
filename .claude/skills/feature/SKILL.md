@@ -117,6 +117,41 @@ the build loop, small build steps as a checklist (`- [ ]`, each with an observab
 "done when" - `/implement` ticks them off and resumes from the first unchecked
 one), files/areas, data/contracts, testing, and notes for the AI.
 
+**Open or reuse the matching GitHub issue.** If the repo has a GitHub remote
+(`git remote get-url origin`) and `gh auth status` is authenticated, search `gh
+issue list --state all --json number,title` for an exact title match:
+`"<N>. <Title>"` for a top-level build-plan item, `"<N><letter>. <Title>"` for a
+sub-item. `<Title>` is **only** the bullet's bolded name - strip the `**`
+markers and drop everything from the first ` - ` onward, the same short form
+`scripts/backfill-github-issues.sh` uses (if that backfill script exists in
+this repo, its `DATA` table is the canonical reference: e.g. build-plan.md's
+`6d` bullet is `6d. **Re-ranking** - add a Cohere re-ranking step to...`, and
+the matching issue title is exactly `6d. Re-ranking`, nothing after it). Never
+paste the full bullet text, and never paste its `- [ ]`/`- [x]` checkbox
+prefix into a title or body either way - GitHub renders that marker as a real,
+clickable task-list checkbox, which looks actionable and duplicates the
+issue's own Open/Closed state. A title that doesn't match this short form will
+silently fail to find an already-backfilled issue and create a duplicate
+instead of reusing it - get this exact, don't approximate it. If found, reuse
+it - `gh issue reopen` it first if it's closed and being re-spec'd. If not
+found, create it with `gh issue create --title "..." --body "..." --label
+build-plan`; for a sub-item, resolve its parent issue the same way first
+(creating it too if missing) and pass `--parent <parent-issue-number>`.
+
+The body must be self-contained, not a bare link to `current-feature.md` -
+whoever reads the issue on GitHub shouldn't have to open a repo file to know
+what it's about. Compose it from the spec just written: the Goal, In scope,
+and Out of scope sections verbatim (build steps aren't final yet at this
+point, so leave them out here). `/complete` overwrites this body with the
+finished archive's full content once the feature is done - see its merge
+step - so this initial body only needs to be accurate for right now, not
+exhaustive.
+
+State the issue number when announcing which feature is being built. Skip
+this step entirely, without failing the spec, when there is no GitHub remote
+or `gh` isn't authenticated - just note that GitHub issue mirroring is
+unavailable.
+
 **Visual or replication features need a reference image.** If the feature is
 "make it look like X" - recreating an existing design, matching a mockup, or
 rebuilding a Canva/Figma artifact - prose underspecifies the target and the build

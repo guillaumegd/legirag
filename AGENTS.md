@@ -105,6 +105,25 @@ GitHub branch protection or a ruleset can require the check after the repository
 is pushed, but that is a separate remote setting. Missing automatic GitHub
 checks do not make the Blueprint unusable.
 
+### Cost-gated check: eval regression (`.github/workflows/eval.yml`)
+
+Unlike `ci.yml` (lint/typecheck/test, always free and automatic), the eval
+regression check makes real Bedrock and Supabase calls (~$0.10-0.20 per run).
+It does **not** run automatically on push or on every PR. It only runs when:
+
+- a PR carries the `run-eval` label (checked on `opened`, `synchronize`,
+  `reopened`, and `labeled` events - meaning once the label is on a PR, every
+  further push to that PR reruns and respends until the label is removed), or
+- someone manually triggers it from the Actions tab (`workflow_dispatch`).
+
+**Rule for any AI coding agent working in this repo: never add the `run-eval`
+label yourself.** Before requesting it, ask the developer explicitly in the
+current conversation, state why the change plausibly affects agent/retrieval
+quality enough to warrant it, and remind them that the label stays active on
+every subsequent push until removed. Only add the label after they give an
+explicit yes. This follows the same explicit-action pattern as the AWS billing
+cap and `infra/push-secrets.sh` (see `project-overview.md`'s Open questions).
+
 ## Commands
 
 TypeScript monorepo (pnpm workspaces: `packages/*`). `web` (Next.js,

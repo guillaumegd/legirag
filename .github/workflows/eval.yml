@@ -1,9 +1,20 @@
 name: Eval regression check
 
-# Item 12b : garde-fou de qualité, pas le gate rapide (voir ci.yml) - déclenché
-# seulement quand le diff peut réellement faire bouger les scores de l'agent,
-# pour ne pas payer un run Bedrock+Supabase (~0,10-0,20 $) sur un changement
-# web/docs sans rapport.
+# Item 12b : garde-fou de qualité, pas le gate rapide (voir ci.yml) - fait un
+# vrai run Bedrock+Supabase (~0,10-0,20 $), donc ne se déclenche plus
+# automatiquement sur chaque push. Deux façons de le lancer :
+#   1. Label `run-eval` posé sur la PR (reste actif : chaque nouveau push sur
+#      une PR déjà labellisée relance le check et redépense - retirer le
+#      label pour itérer sans coût, le reposer avant de merger).
+#   2. Déclenchement manuel ("Run workflow" dans l'onglet Actions), utile
+#      pour vérifier `main` après un merge.
+# Le filtre de chemins reste appliqué même avec le label, pour ne pas payer
+# un run sur un changement web/docs sans rapport.
+#
+# Règle pour tout agent IA codeur sur ce dépôt : ne jamais poser le label
+# `run-eval` soi-même. Demander explicitement au développeur d'abord, en
+# rappelant le coût par run et le fait que le label reste actif sur les push
+# suivants tant qu'il n'est pas retiré - voir AGENTS.md.
 #
 # Secrets requis dans les paramètres GitHub Actions du dépôt (mêmes noms que
 # .env.example) avant que ce check puisse passer en réel :
@@ -19,6 +30,7 @@ concurrency:
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - 'packages/agent/**'
       - 'packages/retrieval/**'
@@ -27,19 +39,13 @@ on:
       - 'eval/questions.json'
       - 'eval/baseline.json'
       - '.github/workflows/eval.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'packages/agent/**'
-      - 'packages/retrieval/**'
-      - 'packages/eval/**'
-      - 'packages/shared/**'
-      - 'eval/questions.json'
-      - 'eval/baseline.json'
-      - '.github/workflows/eval.yml'
+  workflow_dispatch: {}
 
 jobs:
   eval-regression:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'run-eval')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

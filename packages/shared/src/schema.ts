@@ -88,11 +88,21 @@ const ExecutionTraceTokenUsage = z.object({
 // tentative, y compris les tentatives ratées ; search/followRenvois: leurs
 // appels DB/retriever) - optionnel pour rester lisible par les traces
 // persistées avant 12a, qui n'ont jamais porté ce détail.
+// Item 19 - type/message d'une erreur captée par le graphe, jamais la pile
+// complète (voir ErrorInfo/serializeError, packages/agent/src/state.ts et
+// graph.ts) - optionnel pour les mêmes raisons que tokenUsage : les traces
+// persistées avant cette feature n'ont jamais porté ce champ.
+const ExecutionTraceError = z.object({
+  name: z.string().min(1),
+  message: z.string().min(1),
+});
+
 export const ExecutionTraceCall = z.object({
   kind: z.enum(['model', 'tool']),
   name: z.string().min(1),
   durationMs: z.number().int().nonnegative(),
   tokenUsage: ExecutionTraceTokenUsage.optional(),
+  error: ExecutionTraceError.optional(),
 });
 export type ExecutionTraceCall = z.infer<typeof ExecutionTraceCall>;
 

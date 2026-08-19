@@ -118,4 +118,17 @@ describe('buildExecutionTrace', () => {
 
     expect('calls' in (trace.steps[0] ?? {})).toBe(false);
   });
+
+  it('conserve error sur un call après revalidation par ExecutionTrace.parse (item 19)', () => {
+    const searchCallEnEchec = {
+      kind: 'tool' as const,
+      name: 'search',
+      durationMs: 80,
+      error: { name: 'Error', message: 'connexion recherche indisponible' },
+    };
+    const events: TraceEvent[] = [{ node: 'search', timestampMs: 1_100, partialState: { citations: [], calls: [searchCallEnEchec] } }];
+    const trace = buildExecutionTrace(baseInput({ events, endedAtMs: 1_100 }));
+
+    expect(trace.steps[0]?.calls).toEqual([searchCallEnEchec]);
+  });
 });

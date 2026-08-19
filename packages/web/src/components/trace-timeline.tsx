@@ -18,7 +18,7 @@ export function TraceTimeline({ steps }: { steps: ExecutionTrace['steps'] }) {
           {step.calls !== undefined && step.calls.length > 0 && (
             <ul className="step-calls">
               {step.calls.map((call, callIndex) => (
-                <li key={callIndex}>
+                <li key={callIndex} className={call.error !== undefined ? 'call-failed' : undefined}>
                   <span className="call-kind">{CALL_KIND_LABELS[call.kind]}</span>{' '}
                   <code className="call-name">{call.name}</code>{' '}
                   <span className="step-duration">{formatDurationMs(call.durationMs)}</span>
@@ -27,6 +27,11 @@ export function TraceTimeline({ steps }: { steps: ExecutionTrace['steps'] }) {
                       {' '}
                       · {call.tokenUsage.promptTokens + call.tokenUsage.completionTokens} tokens
                     </span>
+                  )}
+                  {call.error !== undefined && (
+                    <div className="call-error">
+                      {call.error.name} : {call.error.message}
+                    </div>
                   )}
                 </li>
               ))}

@@ -8,7 +8,7 @@ import { SUBDIVISION_ARTICLE_ENTIER, toCitation } from './citation.js';
 import { demanderALHumain } from './demander-a-l-humain.js';
 import { routerQuestion } from './router-question.js';
 import { ReponseStructureeIndexee, type RouterQuestionOutput } from './schema.js';
-import { AgentStateAnnotation, type AgentCall, type AgentState, type TokenUsage } from './state.js';
+import { AgentStateAnnotation, type AgentCall, type AgentState, type ErrorInfo, type TokenUsage } from './state.js';
 import { suivreRenvoi, type SplitRenvois } from './suivre-renvoi.js';
 
 // Coût du routeur volontairement exclu (routerQuestion renvoie
@@ -74,6 +74,16 @@ function buildDraftPrompt(question: string, citations: Citation[]): string {
     '',
     "Si confiance vaut 'abstention' : omets regle_principale_index et fournis obligatoirement escalade (motif, interlocuteur - par exemple 'support juridique legirag'). Sinon ('elevee' ou 'moyenne') : regle_principale_index est obligatoire et doit être un numéro de la liste ci-dessus, et omets escalade.",
   ].join('\n');
+}
+
+// Réduit une exception captée à un shape sûr et sérialisable (item 19) -
+// jamais error.stack, seulement type/message, pour que la trace persistée
+// reste diagnosticable sans jamais risquer d'y écrire une pile complète.
+export function serializeError(error: unknown): ErrorInfo {
+  if (error instanceof Error) {
+    return { name: error.name, message: error.message };
+  }
+  return { name: 'UnknownError', message: String(error) };
 }
 
 // La seule vérification code-niveau qui compte : chaque index renvoyé par
@@ -206,12 +216,18 @@ export function buildFixedChainGraph(
       // le graphe (9c) ; si ça ne suffit pas non plus, le chemin "aucun
       // résultat" de search reprend la main.
       console.error('route : routeQuestion a échoué, recherche non filtrée par code.', error);
-      const call: AgentCall = { kind: 'model', name: 'routeQuestion', durationMs: Date.now() - startedAtMs };
+      const call: AgentCall = {
+        kind: 'model',
+        name: 'routeQuestion',
+        durationMs: Date.now() - startedAtMs,
+        error: serializeError(error),
+      };
       return { codes: undefined, calls: appendCall(state.calls, call) };
     }
   }
 
   async function search(state: AgentState): Promise<Partial<AgentState>> {
+    const startedAtMs = Date.now();
     try {
       const retrieverStartedAtMs = Date.now();
       const chunks = await retriever.search({
@@ -244,7 +260,13 @@ export function buildFixedChainGraph(
       // trouvé", la branche que draft transforme déjà en abstention honnête
       // plutôt que de laisser l'échec faire planter tout le graphe (9c).
       console.error('search : la recherche a échoué, traitée comme aucun résultat trouvé.', error);
-      return { citations: [], renvoiIterations: 0 };
+      const call: AgentCall = {
+        kind: 'tool',
+        name: 'search',
+        durationMs: Date.now() - startedAtMs,
+        error: serializeError(error),
+      };
+      return { citations: [], renvoiIterations: 0, calls: appendCall(state.calls, call) };
     }
   }
 
@@ -279,14 +301,23 @@ export function buildFixedChainGraph(
         });
         draftAttempts++;
         tokenUsage = addUsage(tokenUsage, usage);
+        const indexValide = citationsIndicesValides(object, state.citations.length);
         calls = appendCall(calls, {
           kind: 'model',
           name: `generateObject#${attempt}`,
           durationMs: Date.now() - startedAtMs,
           tokenUsage: usage,
+          ...(indexValide
+            ? {}
+            : {
+                error: {
+                  name: 'IndexDeCitationInvalide',
+                  message: `Index de citation hors bornes (pool de ${state.citations.length} citations).`,
+                },
+              }),
         });
 
-        if (citationsIndicesValides(object, state.citations.length)) {
+        if (indexValide) {
           return {
             reponse: toReponseStructuree(object, state.citations, state.traceId, state.dateReference),
             draftAttempts,
@@ -314,6 +345,7 @@ export function buildFixedChainGraph(
           name: `generateObject#${attempt}`,
           durationMs: Date.now() - startedAtMs,
           ...(attemptUsage !== undefined ? { tokenUsage: attemptUsage } : {}),
+          error: serializeError(error),
         });
         // Un échec de generateObject lui-même doit être retenté comme un
         // index invalide, pas remonter et faire planter tout le run : la
@@ -353,6 +385,7 @@ export function buildFixedChainGraph(
       return { newCitationsFound: 0, renvoiIterations };
     }
 
+    const startedAtMs = Date.now();
     try {
       const suivreStartedAtMs = Date.now();
       const { renvois } = await suivreRenvoiFn(sourceArticleId);
@@ -387,7 +420,13 @@ export function buildFixedChainGraph(
       // renvoi ne doit jamais l'écraser, seulement renoncer à l'enrichir
       // (9c), même traitement que "rien de nouveau trouvé" ci-dessus.
       console.error('followRenvois : suivreRenvoi a échoué, réponse existante conservée sans enrichissement.', error);
-      return { newCitationsFound: 0, renvoiIterations };
+      const call: AgentCall = {
+        kind: 'tool',
+        name: 'followRenvois',
+        durationMs: Date.now() - startedAtMs,
+        error: serializeError(error),
+      };
+      return { newCitationsFound: 0, renvoiIterations, calls: appendCall(state.calls, call) };
     }
   }
 

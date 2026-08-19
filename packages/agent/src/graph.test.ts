@@ -15,6 +15,7 @@ import {
   citationParIndex,
   citationsIndicesValides,
   renvoisNonCouverts,
+  serializeError,
   toReponseStructuree,
 } from './graph.js';
 
@@ -293,6 +294,16 @@ describe('toReponseStructuree', () => {
   });
 });
 
+describe('serializeError', () => {
+  it('lit name/message sur une vraie Error', () => {
+    expect(serializeError(new TypeError('token invalide'))).toEqual({ name: 'TypeError', message: 'token invalide' });
+  });
+
+  it('retombe sur UnknownError pour une valeur lancée qui n’est pas une Error', () => {
+    expect(serializeError('panne réseau')).toEqual({ name: 'UnknownError', message: 'panne réseau' });
+  });
+});
+
 describe('buildFixedChainGraph - récupération après échec injecté (9c)', () => {
   it("search : un échec de retriever.search dégrade en abstention plutôt que de faire planter l'invoke", async () => {
     const retrieverCasse: Retriever = {
@@ -313,6 +324,9 @@ describe('buildFixedChainGraph - récupération après échec injecté (9c)', ()
 
     expect(result.citations).toEqual([]);
     expect(result.reponse?.confiance).toBe('abstention');
+
+    const searchCall = result.calls?.find((c) => c.name === 'search');
+    expect(searchCall).toMatchObject({ kind: 'tool', error: { name: 'Error', message: 'connexion recherche indisponible' } });
   });
 
   it('route : un échec de routeQuestion dégrade vers une recherche non filtrée plutôt que de faire planter l’invoke', async () => {
@@ -335,6 +349,9 @@ describe('buildFixedChainGraph - récupération après échec injecté (9c)', ()
     const requete = search.mock.calls[0]?.[0] as RequeteRecherche;
     expect(requete.codes).toBeUndefined();
     expect(result.reponse?.confiance).toBe('abstention');
+
+    const routeCall = result.calls?.find((c) => c.name === 'routeQuestion');
+    expect(routeCall?.error).toEqual({ name: 'Error', message: 'routage indisponible' });
   });
 
   it('followRenvois : un échec de suivreRenvoiFn conserve la réponse déjà construite par draft plutôt que de faire planter l’invoke', async () => {
@@ -382,6 +399,9 @@ describe('buildFixedChainGraph - récupération après échec injecté (9c)', ()
     expect(result.reponse?.verdict).toBe('verdict de test');
     expect(result.reponse?.regle_principale?.article_identifier).toBe(CITATION_CONNUE.article_identifier);
     expect(result.renvoiIterations).toBe(1);
+
+    const followRenvoisCall = result.calls?.find((c) => c.name === 'followRenvois');
+    expect(followRenvoisCall).toMatchObject({ kind: 'tool', error: { name: 'Error', message: 'suivi de renvoi indisponible' } });
   });
 });
 
@@ -468,13 +488,75 @@ describe('buildFixedChainGraph - traçage par appel individuel (12a)', () => {
 
     const draftCalls = result.calls?.filter((c) => c.name.startsWith('generateObject'));
     expect(draftCalls).toHaveLength(2);
-    expect(draftCalls?.[0]).toMatchObject({ kind: 'model', name: 'generateObject#1', tokenUsage: { promptTokens: 10, completionTokens: 5 } });
-    expect(draftCalls?.[1]).toMatchObject({ kind: 'model', name: 'generateObject#2', tokenUsage: { promptTokens: 12, completionTokens: 8 } });
+    expect(draftCalls?.[0]).toMatchObject({
+      kind: 'model',
+      name: 'generateObject#1',
+      tokenUsage: { promptTokens: 10, completionTokens: 5 },
+      error: { name: 'IndexDeCitationInvalide', message: expect.any(String) },
+    });
+    expect(draftCalls?.[1]).toMatchObject({
+      kind: 'model',
+      name: 'generateObject#2',
+      tokenUsage: { promptTokens: 12, completionTokens: 8 },
+    });
+    expect(draftCalls?.[1]?.error).toBeUndefined();
     expect(result.reponse?.confiance).toBe('elevee');
 
     // search (résultat non vide) et followRenvois (branche "rien de nouveau") ont chacun consigné leur(s) appel(s).
     const toolCallNames = result.calls?.filter((c) => c.kind === 'tool').map((c) => c.name);
     expect(toolCallNames).toEqual(['retriever.search', 'fetchArticlesForCitation', 'suivreRenvoiFn']);
+  });
+
+  it('draft : consigne l’erreur réelle (item 19) quand generateObject lui-même échoue, distincte d’un index invalide', async () => {
+    const articlePourCitation: ArticleForCitation = {
+      articleIdentifier: CITATION_CONNUE.article_identifier,
+      articleNum: '123',
+      code: CITATION_CONNUE.code,
+      etat: CITATION_CONNUE.etat,
+      dateDebut: CITATION_CONNUE.date_debut,
+      texteExact: CITATION_CONNUE.texte_exact,
+    };
+    vi.mocked(fetchArticlesForCitation).mockResolvedValueOnce([articlePourCitation]);
+
+    const draftValide: ReponseStructureeIndexee = {
+      verdict: 'verdict de test',
+      regle_principale_index: 0,
+      textes_complementaires: [],
+      hors_perimetre: ['hors périmètre'],
+      confiance: 'elevee',
+    };
+    vi.mocked(generateObject)
+      .mockRejectedValueOnce(new Error('The security token included in the request is invalid'))
+      .mockResolvedValueOnce({
+        object: draftValide,
+        usage: { promptTokens: 12, completionTokens: 8 },
+      } as unknown as Awaited<ReturnType<typeof generateObject>>);
+
+    const retrieverAvecResultat: Retriever = {
+      async search(): Promise<Chunk[]> {
+        return [{ id: 1, articleIdentifier: CITATION_CONNUE.article_identifier, contenu: 'texte' }];
+      },
+    };
+
+    const graph = buildFixedChainGraph(retrieverAvecResultat, {} as LanguageModel, routeurFactice, suivreRenvoiSansResultat);
+
+    const result = await graph.invoke({
+      question: 'question quelconque',
+      dateReference: new Date('2026-08-17'),
+      codes: undefined,
+      traceId: 'trace-test-12a-draft-erreur',
+      reponse: undefined,
+    });
+
+    const draftCalls = result.calls?.filter((c) => c.name.startsWith('generateObject'));
+    expect(draftCalls).toHaveLength(2);
+    expect(draftCalls?.[0]).toMatchObject({
+      kind: 'model',
+      name: 'generateObject#1',
+      error: { name: 'Error', message: 'The security token included in the request is invalid' },
+    });
+    expect(draftCalls?.[1]?.error).toBeUndefined();
+    expect(result.reponse?.confiance).toBe('elevee');
   });
 
   it('followRenvois : consigne fetchArticlesForCitation en plus de suivreRenvoiFn quand de nouveaux renvois sont trouvés', async () => {

@@ -135,6 +135,15 @@
   color: var(--faint);
 }
 
+.call-failed .call-name {
+  color: var(--trace-fail);
+}
+
+.call-error {
+  color: var(--trace-fail);
+  margin-top: 0.15rem;
+}
+
 .trace-scrim {
   position: fixed;
   inset: 0;

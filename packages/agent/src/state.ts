@@ -9,6 +9,16 @@ export interface TokenUsage {
   completionTokens: number;
 }
 
+// Forme sûre et sérialisable d'une erreur captée (item 19) - jamais la pile
+// complète, seulement de quoi distinguer une panne de creds/throttling d'un
+// échec de vérification côté modèle. Construite par serializeError (graph.ts)
+// pour toute exception réellement attrapée ; le cas "index de citation
+// invalide" côté draft n'en lève pas mais construit ce même shape à la main.
+export interface ErrorInfo {
+  name: string;
+  message: string;
+}
+
 // Détail par appel individuel (item 12a) - accumulé sur tout le run comme
 // citations/tokenUsage, pas juste le delta d'un nœud : route/search/draft/
 // followRenvois sont des fermetures privées à buildFixedChainGraph,
@@ -20,6 +30,7 @@ export interface AgentCall {
   name: string;
   durationMs: number;
   tokenUsage?: TokenUsage;
+  error?: ErrorInfo;
 }
 
 // Forme d'état durable du graphe LangGraph.js - pas encore un contrat

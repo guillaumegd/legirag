@@ -414,7 +414,7 @@ keep resuming 6d/10's already-stalled work rather than jump here.
   accounts, anonymous, trace addressed by `trace_id`" model. Primary use
   case: demos, so a reviewer isn't blocked by item 17's quota when
   replaying already-asked questions.
-- [ ] 19. **Surface the real error behind the generic
+- [x] 19. **Surface the real error behind the generic
   verification-failure abstention** - `packages/agent/src/graph.ts`'s
   `draft()` node (`MAX_DRAFT_ATTEMPTS = 2`) catches any exception generically
   and always emits the same "vérification des citations a échoué"

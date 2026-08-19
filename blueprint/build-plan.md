@@ -393,7 +393,7 @@ keep resuming 6d/10's already-stalled work rather than jump here.
   `aws lambda update-function-configuration` no-op touch on both functions),
   then confirm via CloudWatch logs (`filter-log-events` on
   `"security token"`) and by replaying the "140 km/h" question end-to-end.
-- [ ] 17. **Separate paid and free-route quotas** -
+- [x] 17. **Separate paid and free-route quotas** -
   `PersistentRateLimitGuard` (`packages/api/src/common/persistent-rate-limit.guard.ts`),
   wired globally via `APP_GUARD`, applies the same strict per-IP budget
   (`RATE_LIMIT_PER_MINUTE_PER_IP` default 1, `RATE_LIMIT_PER_DAY_PER_IP`

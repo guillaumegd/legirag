@@ -3,10 +3,12 @@ import type { Article, Subdivision } from '@legirag/shared';
 import { fetchArticleByIdentifier } from '@legirag/retrieval';
 import { ArticleQuerySchema, type ArticleQuery } from './article.dto.js';
 import { ZodValidationPipe } from '../question/zod-validation.pipe.js';
+import { FreeRead } from '../common/free-read.decorator.js';
 
 @Controller('article')
 export class ArticleController {
   @Get(':articleIdentifier')
+  @FreeRead()
   async getByIdentifier(
     @Param('articleIdentifier') articleIdentifier: string,
     @Query(new ZodValidationPipe(ArticleQuerySchema)) query: ArticleQuery,

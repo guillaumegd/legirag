@@ -26,6 +26,13 @@ async function main() {
     for (const [key, value] of Object.entries(JSON.parse(SecretString))) {
       process.env[key] = value;
     }
+    // Le runtime Lambda injecte AWS_SESSION_TOKEN pour les identifiants
+    // temporaires du rôle d'exécution - sans le supprimer ici, le SDK AWS
+    // signe avec la nouvelle paire clé/secret du coffre-fort mais l'ancien
+    // jeton du rôle, un triplet invalide que Bedrock rejette avec
+    // "The security token included in the request is invalid" (confirmé en
+    // conditions réelles, item 16, 2026-08-19).
+    delete process.env.AWS_SESSION_TOKEN;
   }
 
   const [command, ...args] = process.argv.slice(2);

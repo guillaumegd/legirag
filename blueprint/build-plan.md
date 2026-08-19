@@ -379,7 +379,7 @@ day. All take priority over resuming 6d or item 10. Spec each explicitly
 (`/feature 16`, `/feature 17`, ...) since a no-argument `/feature` should
 keep resuming 6d/10's already-stalled work rather than jump here.
 
-- [ ] 16. **Restore valid Bedrock credentials in prod** - the `legirag/app-env`
+- [x] 16. **Restore valid Bedrock credentials in prod** - the `legirag/app-env`
   Secrets Manager secret was pushed with real `AWS_ACCESS_KEY_ID`/
   `AWS_SECRET_ACCESS_KEY` via `infra/push-secrets.sh` (confirmed applied -
   secret `LastChangedDate` updated to `2026-08-19T03:34:25+01:00`), but both

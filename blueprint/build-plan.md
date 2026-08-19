@@ -438,7 +438,7 @@ keep resuming 6d/10's already-stalled work rather than jump here.
   major versions can lag behind the latest LTS, so confirm 24 is actually
   selectable before relying on it; this is a remote dashboard check outside
   what `/feature`'s local changes can verify.
-- [ ] 21. **Wire up release-please, enforce conventional commits** - git
+- [x] 21. **Wire up release-please, enforce conventional commits** - git
   history already reads as conventional commits by convention (`feat(web):`,
   `fix(ci):`, `chore:`, `docs:` - see recent `git log`; already documented
   as a rule in `blueprint/context/ai-interaction.md`'s Commits section) but
@@ -457,7 +457,7 @@ keep resuming 6d/10's already-stalled work rather than jump here.
     release PR - a deliberate, documented exception to `AGENTS.md`'s
     `contents: read`-by-default rule for CI, since opening PRs and creating
     releases/tags is this workflow's entire job)
-  - [ ] 21b. **Commitlint enforcement** - a Husky `commit-msg` hook plus a
+  - [x] 21b. **Commitlint enforcement** - a Husky `commit-msg` hook plus a
     commitlint GitHub Actions check on PR commits/title, using
     `@commitlint/config-conventional`, so non-conventional commits are
     caught locally and on PRs before they can reach `main` and confuse

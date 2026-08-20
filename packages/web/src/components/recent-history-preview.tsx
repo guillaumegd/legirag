@@ -25,7 +25,7 @@ export function RecentHistoryPreview() {
           const badge = formatConfianceBadge(entry.reponse.confiance);
           return (
             <li key={entry.id}>
-              <a href={`/historique?entry=${encodeURIComponent(entry.id)}`} className="recent-history-item">
+              <a href={`/historique/${encodeURIComponent(entry.id)}`} className="recent-history-item">
                 <span className="recent-history-question">{entry.question}</span>
                 <span className={`badge ${badge.className}`}>{badge.label}</span>
               </a>

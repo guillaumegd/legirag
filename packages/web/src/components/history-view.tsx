@@ -3,33 +3,17 @@
 import { useEffect, useState } from 'react';
 import { type HistoryEntry, clearHistory, listHistoryEntries, removeHistoryEntry } from '../lib/history';
 import { formatConfianceBadge, formatDateTimeFr } from '../lib/format';
-import { ConfidenceBanner } from './confidence-banner';
-import { MainRule } from './main-rule';
-import { SupplementaryTexts } from './supplementary-texts';
-import { HorsPerimetre } from './hors-perimetre';
-import { FooterBar } from './footer-bar';
 
 type Confirm = { kind: 'all' } | { kind: 'one'; id: string; question: string };
 
 export function HistoryView() {
   const [entries, setEntries] = useState<HistoryEntry[] | undefined>(undefined);
-  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [openMenuId, setOpenMenuId] = useState<string | undefined>(undefined);
   const [confirm, setConfirm] = useState<Confirm | undefined>(undefined);
 
   useEffect(() => {
-    const all = listHistoryEntries();
-    setEntries(all);
-    const requestedId = new URLSearchParams(window.location.search).get('entry');
-    if (requestedId !== null && all.some((entry) => entry.id === requestedId)) {
-      setSelectedId(requestedId);
-    }
+    setEntries(listHistoryEntries());
   }, []);
-
-  function goBackToList() {
-    setSelectedId(undefined);
-    window.history.replaceState(null, '', '/historique');
-  }
 
   function requestRemove(id: string, question: string) {
     setConfirm({ kind: 'one', id, question });
@@ -51,41 +35,15 @@ export function HistoryView() {
     if (confirm.kind === 'all') {
       clearHistory();
       setEntries([]);
-      setSelectedId(undefined);
     } else {
       removeHistoryEntry(confirm.id);
       setEntries(listHistoryEntries());
-      setSelectedId((current) => (current === confirm.id ? undefined : current));
     }
     setConfirm(undefined);
   }
 
   if (entries === undefined) {
     return null;
-  }
-
-  const selected = entries.find((entry) => entry.id === selectedId);
-
-  if (selected !== undefined) {
-    return (
-      <>
-        <button type="button" className="history-back" onClick={goBackToList}>
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="M12.5 5L7 10l5.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>Retour à l'historique</span>
-        </button>
-        <p className="history-archived-notice">
-          Réponse archivée localement le {formatDateTimeFr(selected.askedAt)} - le texte cité a pu évoluer depuis ;
-          consultez la source officielle via le lien Légifrance.
-        </p>
-        <ConfidenceBanner confiance={selected.reponse.confiance} dateReference={selected.reponse.date_reference} />
-        <MainRule reponse={selected.reponse} />
-        <SupplementaryTexts reponse={selected.reponse} />
-        <HorsPerimetre items={selected.reponse.hors_perimetre} />
-        <FooterBar reponse={selected.reponse} />
-      </>
-    );
   }
 
   const title = (
@@ -128,13 +86,13 @@ export function HistoryView() {
           const menuOpen = openMenuId === entry.id;
           return (
             <li key={entry.id} className="history-item">
-              <button type="button" className="history-item-main" onClick={() => setSelectedId(entry.id)}>
+              <a href={`/historique/${encodeURIComponent(entry.id)}`} className="history-item-main">
                 <span className="history-item-question">{entry.question}</span>
                 <span className="history-item-meta">
                   <span className={`badge ${badge.className}`}>{badge.label}</span>
                   <span>{formatDateTimeFr(entry.askedAt)}</span>
                 </span>
-              </button>
+              </a>
               <button
                 type="button"
                 className="history-item-menu-button"

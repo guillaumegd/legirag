@@ -5,6 +5,7 @@ import type { ExecutionTrace } from '@legirag/shared/schema';
 import { fetchTrace } from '../lib/api-client';
 import { formatDurationMs } from '../lib/format';
 import { summarizeTrace } from '../lib/trace-summary';
+import { ClockIcon } from './clock-icon';
 import { TraceTimeline } from './trace-timeline';
 import '../app/trace/trace.css';
 
@@ -110,21 +111,50 @@ function LoadedTrace({ trace }: { trace: ExecutionTrace }) {
   const summary = summarizeTrace(trace);
   return (
     <>
-      <div className="totals">
-        <span>
-          Durée totale : <strong>{formatDurationMs(trace.totalDurationMs)}</strong>
-        </span>
-        <span>
-          Appels modèle : <strong>{summary.modelCalls}</strong>
-        </span>
-        <span>
-          Appels outils : <strong>{summary.toolCalls}</strong>
-        </span>
-        <span>
-          Tokens utilisés : <strong>{summary.totalTokens}</strong>
-        </span>
+      <div className="trace-totals-grid">
+        <TraceStat icon={<ClockIcon size={16} />} label="Durée totale" value={formatDurationMs(trace.totalDurationMs)} />
+        <TraceStat
+          icon={
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <rect x="6" y="6" width="8" height="8" rx="1.3" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M10 3v3M10 14v3M3 10h3M14 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          }
+          label="Appels modèle"
+          value={summary.modelCalls}
+        />
+        <TraceStat
+          icon={
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="6.5" cy="6.5" r="2.3" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M8.2 8.2L15.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M13 13l1.2-1.2a1.6 1.6 0 012.3 2.3L15.3 15.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          }
+          label="Appels outils"
+          value={summary.toolCalls}
+        />
+        <TraceStat
+          icon={
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M7 3v14M13 3v14M4 7.5h12M4 12.5h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          }
+          label="Tokens utilisés"
+          value={summary.totalTokens}
+        />
       </div>
       <TraceTimeline steps={trace.steps} />
     </>
+  );
+}
+
+function TraceStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+  return (
+    <div className="trace-stat-card">
+      <span className="trace-stat-icon">{icon}</span>
+      <div className="trace-stat-label">{label}</div>
+      <div className="trace-stat-value">{value}</div>
+    </div>
   );
 }

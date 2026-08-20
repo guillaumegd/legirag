@@ -29,6 +29,37 @@
   color: var(--text);
 }
 
+.trace-totals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-bottom: 1.6rem;
+}
+
+.trace-stat-card {
+  background: var(--bg-alt);
+  border-radius: var(--radius-lg);
+  padding: 0.8rem 0.9rem;
+}
+
+.trace-stat-icon {
+  display: block;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+.trace-stat-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 0.1rem;
+}
+
+.trace-stat-value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+}
+
 .trace-page .result-box {
   border: 1px solid var(--border);
   border-radius: var(--radius);

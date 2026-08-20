@@ -215,13 +215,21 @@ export function AskQuestion() {
       )}
 
       {status === 'done' && reponse !== undefined && (
-        <div className="view-rise-in">
-          <ConfidenceBanner confiance={reponse.confiance} dateReference={reponse.date_reference} />
-          <MainRule reponse={reponse} />
-          <SupplementaryTexts reponse={reponse} />
-          <HorsPerimetre items={reponse.hors_perimetre} />
+        <>
+          <div className="view-rise-in">
+            <ConfidenceBanner confiance={reponse.confiance} dateReference={reponse.date_reference} />
+            <MainRule reponse={reponse} />
+            <SupplementaryTexts reponse={reponse} />
+            <HorsPerimetre items={reponse.hors_perimetre} />
+          </div>
+          {/* Hors de .view-rise-in : FooterBar rend TracePanel, dont
+              .trace-aside est position:fixed - imbriqué sous un ancêtre dont
+              le transform est actif (même le temps de l'animation, pas
+              seulement son état final), il hériterait d'un containing block
+              différent de la fenêtre, provoquant un flash visible du panneau
+              fermé pendant les 420ms de l'animation. */}
           <FooterBar reponse={reponse} />
-        </div>
+        </>
       )}
 
       {status === 'error' && errorMessage !== undefined && (

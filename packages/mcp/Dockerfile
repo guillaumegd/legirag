@@ -8,12 +8,12 @@
 # réécriture en handler, voir infra/lambda.tf et current-feature.md.
 FROM public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1 AS lambda-adapter
 
-FROM node:20-slim AS build
+FROM node:24-slim AS build
 WORKDIR /repo
 # Pinned to the version CI and local dev actually use (pnpm-lock.yaml
 # lockfileVersion, .github/workflows/ci.yml) - a bare `corepack enable`
-# fetches the latest pnpm, which requires Node >=22.13 and fails outright
-# on this image's Node 20 (confirmed live, see packages/api/Dockerfile).
+# fetches whatever the latest pnpm is instead, which could drift from
+# that pin (see packages/api/Dockerfile).
 RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
@@ -34,7 +34,7 @@ COPY packages/mcp packages/mcp
 RUN pnpm --filter @legirag/mcp... build
 RUN pnpm --filter @legirag/mcp deploy --prod /deploy
 
-FROM node:20-slim AS runtime
+FROM node:24-slim AS runtime
 WORKDIR /app
 COPY --from=build /deploy .
 # Extension Lambda : auto-découverte par le runtime dans /opt/extensions -

@@ -424,7 +424,7 @@ keep resuming 6d/10's already-stalled work rather than jump here.
   record. Record enough of the real error (type/message, not the full
   stack) in the trace so a failure like item 16's is diagnosable from the
   trace/logs alone next time, without an ad hoc CloudWatch dig.
-- [ ] 20. **Upgrade to Node 24** - every pin in the repo is still on Node 20,
+- [x] 20. **Upgrade to Node 24** - every pin in the repo is still on Node 20,
   with no `.nvmrc` for local nvm use: root `package.json` `engines.node`
   (`">=20"`), `.github/workflows/ci.yml:20` and `.github/workflows/eval.yml:59`
   (`node-version: 20`), `packages/api/Dockerfile` and

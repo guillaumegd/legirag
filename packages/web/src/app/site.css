@@ -318,7 +318,12 @@ main {
 }
 
 .view-rise-in {
-  animation: lg-rise-in 420ms ease both;
+  /* Pas de fill-mode "both" : "to { transform: translateY(0) }" resterait un
+     transform actif (pas "none") une fois l'animation finie, ce qui crée un
+     nouveau containing block CSS pour tout descendant position:fixed - le
+     panneau "Raisonnement" (TracePanel, dans FooterBar) se positionnait alors
+     par rapport à ce conteneur au lieu de la fenêtre. */
+  animation: lg-rise-in 420ms ease;
 }
 
 .asking-dots {

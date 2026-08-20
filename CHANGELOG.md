@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.0](https://github.com/guillaumegd/legirag/compare/legirag-v0.2.0...legirag-v0.3.0) (2026-08-20)
+
+
+### Features
+
+* add client-side local history of questions, answers, and traces ([6a2a1ed](https://github.com/guillaumegd/legirag/commit/6a2a1ed54f97745e8a78375210be021c3e5586f8))
+* mirror build-plan features and fixes as GitHub issues (item 22) ([fbd213c](https://github.com/guillaumegd/legirag/commit/fbd213cf8a2e4b325eed74e483af320ebbe98d0d))
+* separate paid and free-route quotas ([66126be](https://github.com/guillaumegd/legirag/commit/66126bec0a337464bd80a73d63e5693c0935353a))
+* surface real error behind generic verification-failure abstention ([ea4048b](https://github.com/guillaumegd/legirag/commit/ea4048b45a35e84fac7676d0dad0444147e1057f))
+* upgrade to Node 24 ([b3900e1](https://github.com/guillaumegd/legirag/commit/b3900e18b823175240c9f09cf4e299ee303078e1))
+
+
+### Bug Fixes
+
+* add mocked backend dev mode for packages/web ([4590863](https://github.com/guillaumegd/legirag/commit/45908633ca8e2308b4822e8a7677d1b9e2e067e8))
+* align web UI/UX with Claude Design diagnostic ([280b0ab](https://github.com/guillaumegd/legirag/commit/280b0ab99f314faac60ecffabd737d05638fdb08)), closes [#70](https://github.com/guillaumegd/legirag/issues/70)
+* give /historique its own /historique/:id route ([8f77c87](https://github.com/guillaumegd/legirag/commit/8f77c8769da550d9da6f10cf16ad05c70ea811ef))
+* give the header a real identity and fix the confidence badge color bug ([6ad873d](https://github.com/guillaumegd/legirag/commit/6ad873d1ff7b52a957b67d9e50fdbd80da514736))
+* restore valid Bedrock credentials in prod ([5ba838c](https://github.com/guillaumegd/legirag/commit/5ba838c2d92ffe08c28447c1a17098d266a6efe1))
+* show the same confidence banner in the history view as live ([1d15497](https://github.com/guillaumegd/legirag/commit/1d1549710757f7d25019cd7bec444ce1a2b6123e)), closes [#73](https://github.com/guillaumegd/legirag/issues/73)
+* stop trace panel flash and add its missing stats card grid ([923df03](https://github.com/guillaumegd/legirag/commit/923df034d5cc92104d0bb6ef7049de1f16089757)), closes [#72](https://github.com/guillaumegd/legirag/issues/72)
+* stop trace panel from anchoring to the wrong containing block ([6a2643e](https://github.com/guillaumegd/legirag/commit/6a2643ecf12ea4cb602f75c15cc60078dd192666)), closes [#71](https://github.com/guillaumegd/legirag/issues/71)
+
 ## [0.2.0](https://github.com/guillaumegd/legirag/compare/legirag-v0.1.0...legirag-v0.2.0) (2026-08-19)
 
 

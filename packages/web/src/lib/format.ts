@@ -17,10 +17,14 @@ export function formatEtatBadge(etat: Etat): Badge {
 
 // L'abstention est un badge neutre (pas rouge/danger) : le système signale
 // honnêtement une limite, ce n'est pas un échec - même logique que le
-// traitement neutre de "Hors périmètre" (hors-perimetre.tsx).
+// traitement neutre de "Hors périmètre" (hors-perimetre.tsx). elevee/moyenne
+// reprennent les mêmes classes success/warning que la jauge de
+// ConfidenceBanner (formatConfidenceBanner) - avant, les deux niveaux
+// partageaient la même classe rouge "badge-confidence", rendant le badge
+// trompeur (toujours la même couleur quel que soit le niveau réel).
 const CONFIANCE_BADGES: Record<Confiance, Badge> = {
-  elevee: { label: 'Confiance élevée', className: 'badge-confidence' },
-  moyenne: { label: 'Confiance moyenne', className: 'badge-confidence' },
+  elevee: { label: 'Confiance élevée', className: 'badge-success' },
+  moyenne: { label: 'Confiance moyenne', className: 'badge-warning' },
   abstention: { label: 'Abstention', className: 'badge-neutral' },
 };
 

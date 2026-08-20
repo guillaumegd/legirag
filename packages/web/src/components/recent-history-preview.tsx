@@ -7,14 +7,26 @@ import { formatConfianceBadge } from '../lib/format';
 const RECENT_PREVIEW_LIMIT = 3;
 
 export function RecentHistoryPreview() {
-  const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const [entries, setEntries] = useState<HistoryEntry[] | undefined>(undefined);
 
   useEffect(() => {
     setEntries(listHistoryEntries().slice(0, RECENT_PREVIEW_LIMIT));
   }, []);
 
-  if (entries.length === 0) {
+  if (entries === undefined) {
     return null;
+  }
+
+  if (entries.length === 0) {
+    return (
+      <div className="recent-history">
+        <p className="recent-history-label">Historique</p>
+        <p className="recent-history-empty">Aucune question pour l&rsquo;instant. Vos prochaines questions apparaîtront ici.</p>
+        <a href="/historique" className="recent-history-more">
+          Voir l&rsquo;historique →
+        </a>
+      </div>
+    );
   }
 
   return (

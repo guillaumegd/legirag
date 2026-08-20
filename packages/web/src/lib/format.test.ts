@@ -45,9 +45,9 @@ describe('formatDateTimeFr', () => {
 });
 
 describe('formatConfianceBadge', () => {
-  it('maps elevee and moyenne to the confidence badge', () => {
-    expect(formatConfianceBadge('elevee')).toEqual({ label: 'Confiance élevée', className: 'badge-confidence' });
-    expect(formatConfianceBadge('moyenne')).toEqual({ label: 'Confiance moyenne', className: 'badge-confidence' });
+  it('maps elevee to the success badge and moyenne to the warning badge', () => {
+    expect(formatConfianceBadge('elevee')).toEqual({ label: 'Confiance élevée', className: 'badge-success' });
+    expect(formatConfianceBadge('moyenne')).toEqual({ label: 'Confiance moyenne', className: 'badge-warning' });
   });
 
   it('maps abstention to a neutral badge, not a danger one', () => {

@@ -59,7 +59,18 @@ export function ArticleExpander({
         aria-expanded={isOpen}
         onClick={() => void toggle()}
       >
-        {isOpen ? 'Masquer l’article entier' : 'Voir l’article entier'}
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden="true"
+          className="article-expander-chevron"
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >
+          <path d="M5 7.5l5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span>{isOpen ? 'Masquer l’article entier' : 'Voir l’article entier'}</span>
       </button>
 
       {state.kind === 'loading' && <p className="article-expander-status">Chargement…</p>}

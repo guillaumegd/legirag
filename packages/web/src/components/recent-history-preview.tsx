@@ -19,7 +19,7 @@ export function RecentHistoryPreview() {
 
   return (
     <div className="recent-history">
-      <p className="recent-history-label">Vos dernières questions</p>
+      <p className="recent-history-label">Historique</p>
       <ul className="recent-history-list">
         {entries.map((entry) => {
           const badge = formatConfianceBadge(entry.reponse.confiance);

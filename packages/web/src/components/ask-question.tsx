@@ -7,6 +7,8 @@ import { describeActivity } from '../lib/activity';
 import { extractErrorMessage } from '../lib/errors';
 import { saveHistoryEntry } from '../lib/history';
 import { ActivityIcon } from './activity-icon';
+import { ClockIcon } from './clock-icon';
+import { ConfidenceBanner } from './confidence-banner';
 import { MainRule } from './main-rule';
 import { SupplementaryTexts } from './supplementary-texts';
 import { HorsPerimetre } from './hors-perimetre';
@@ -15,10 +17,32 @@ import { RecentHistoryPreview } from './recent-history-preview';
 
 const EXEMPLE_QUESTION = 'Est-ce que je peux rouler à 140 sur l’autoroute ?';
 const EXEMPLE_QUESTIONS = [
-  'Puis-je rouler à 140 sur l’autoroute ?',
-  'Mon propriétaire peut-il augmenter le loyer chaque année ?',
-  'Quel délai pour contester une amende ?',
+  {
+    question: 'Puis-je rouler à 140 sur l’autoroute ?',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="2.5" y="9" width="15" height="5.5" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M4.5 9l1.7-3.5a2 2 0 011.8-1h4a2 2 0 011.8 1L15.5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="6" cy="15" r="1.4" fill="currentColor" />
+        <circle cx="14" cy="15" r="1.4" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    question: 'Mon propriétaire peut-il augmenter le loyer chaque année ?',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M3 10l7-6 7 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4.5 9v6.5a1 1 0 001 1h9a1 1 0 001-1V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    question: 'Quel délai pour contester une amende ?',
+    icon: <ClockIcon size={15} />,
+  },
 ];
+const HORS_PERIMETRE_EXAMPLE = 'Quelle est la durée du préavis de licenciement en droit du travail allemand ?';
 const CONNECTION_ERROR_MESSAGE = "La connexion avec l'agent a été interrompue.";
 
 type Status = 'idle' | 'asking' | 'done' | 'error';
@@ -62,7 +86,16 @@ export function AskQuestion() {
 
   async function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
-    const trimmed = question.trim();
+    void submit(question);
+  }
+
+  function submitHorsPerimetreExample() {
+    setQuestion(HORS_PERIMETRE_EXAMPLE);
+    void submit(HORS_PERIMETRE_EXAMPLE);
+  }
+
+  async function submit(rawQuestion: string) {
+    const trimmed = rawQuestion.trim();
     if (trimmed.length === 0 || status === 'asking') {
       return;
     }
@@ -102,18 +135,12 @@ export function AskQuestion() {
   return (
     <>
       {status === 'idle' ? (
-        <>
+        <div className="view-rise-in">
           <h1 className="page-title">Posez une question juridique.</h1>
           <p className="page-subtitle">
             Réponse sourcée dans les codes en vigueur, article par article — avec ce qu’elle ne couvre pas.
           </p>
-        </>
-      ) : (
-        <h1 className="visually-hidden">legirag — Posez votre question</h1>
-      )}
 
-      {status === 'idle' ? (
-        <>
           <form className="ask-form" onSubmit={(formEvent) => void handleSubmit(formEvent)}>
             <label className="visually-hidden" htmlFor="q">
               Posez votre question juridique
@@ -128,31 +155,45 @@ export function AskQuestion() {
               placeholder={EXEMPLE_QUESTION}
             />
             <button className="ask-submit" type="submit">
-              Demander
+              <span>Demander</span>
+              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </form>
 
           <div className="example-pills">
-            {EXEMPLE_QUESTIONS.map((exemple) => (
+            {EXEMPLE_QUESTIONS.map(({ question: exemple, icon }) => (
               <button key={exemple} type="button" className="example-pill" onClick={() => applyExample(exemple)}>
-                {exemple}
+                {icon}
+                <span>{exemple}</span>
               </button>
             ))}
           </div>
 
-          <RecentHistoryPreview />
-        </>
-      ) : (
-        <div className="question-recap">
-          <p>
-            <span className="quote-mark">« </span>
-            {question}
-            <span className="quote-mark"> »</span>
-          </p>
-          <button type="button" onClick={reset}>
-            Nouvelle question
+          <button type="button" className="hors-perimetre-example-link" onClick={submitHorsPerimetreExample}>
+            Voir un exemple hors périmètre →
           </button>
+
+          <RecentHistoryPreview />
         </div>
+      ) : (
+        <>
+          <h1 className="visually-hidden">legirag — Posez votre question</h1>
+          <div className="question-recap">
+            <p>
+              <span className="quote-mark">« </span>
+              {question}
+              <span className="quote-mark"> »</span>
+            </p>
+            <button type="button" className="question-recap-reset" onClick={reset}>
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+              <span>Nouvelle question</span>
+            </button>
+          </div>
+        </>
       )}
 
       {activity.length > 0 && (
@@ -163,16 +204,24 @@ export function AskQuestion() {
               <span>{line.label}</span>
             </li>
           ))}
+          {status === 'asking' && (
+            <li className="asking-dots" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </li>
+          )}
         </ul>
       )}
 
       {status === 'done' && reponse !== undefined && (
-        <>
+        <div className="view-rise-in">
+          <ConfidenceBanner confiance={reponse.confiance} dateReference={reponse.date_reference} />
           <MainRule reponse={reponse} />
           <SupplementaryTexts reponse={reponse} />
           <HorsPerimetre items={reponse.hors_perimetre} />
           <FooterBar reponse={reponse} />
-        </>
+        </div>
       )}
 
       {status === 'error' && errorMessage !== undefined && (

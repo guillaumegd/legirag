@@ -15,14 +15,33 @@ export function formatEtatBadge(etat: Etat): Badge {
   return ETAT_BADGES[etat];
 }
 
+// L'abstention est un badge neutre (pas rouge/danger) : le système signale
+// honnêtement une limite, ce n'est pas un échec - même logique que le
+// traitement neutre de "Hors périmètre" (hors-perimetre.tsx).
 const CONFIANCE_BADGES: Record<Confiance, Badge> = {
   elevee: { label: 'Confiance élevée', className: 'badge-confidence' },
   moyenne: { label: 'Confiance moyenne', className: 'badge-confidence' },
-  abstention: { label: 'Abstention', className: 'badge-danger' },
+  abstention: { label: 'Abstention', className: 'badge-neutral' },
 };
 
 export function formatConfianceBadge(confiance: Confiance): Badge {
   return CONFIANCE_BADGES[confiance];
+}
+
+export interface ConfidenceBannerMeta {
+  label: string;
+  className: string;
+  gaugePercent: number;
+}
+
+const CONFIANCE_BANNER: Record<Confiance, ConfidenceBannerMeta> = {
+  elevee: { label: 'Confiance élevée', className: 'confidence-banner-success', gaugePercent: 92 },
+  moyenne: { label: 'Confiance moyenne', className: 'confidence-banner-warning', gaugePercent: 58 },
+  abstention: { label: 'Abstention', className: 'confidence-banner-neutral', gaugePercent: 0 },
+};
+
+export function formatConfidenceBanner(confiance: Confiance): ConfidenceBannerMeta {
+  return CONFIANCE_BANNER[confiance];
 }
 
 const CONFIANCE_VALUES: readonly Confiance[] = ['elevee', 'moyenne', 'abstention'];

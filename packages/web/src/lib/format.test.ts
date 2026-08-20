@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { asConfiance, formatConfianceBadge, formatDateFr, formatDateTimeFr, formatDurationMs, formatEtatBadge, formatMotifPresence } from './format.js';
+import {
+  asConfiance,
+  formatConfianceBadge,
+  formatConfidenceBanner,
+  formatDateFr,
+  formatDateTimeFr,
+  formatDurationMs,
+  formatEtatBadge,
+  formatMotifPresence,
+} from './format.js';
 
 describe('formatEtatBadge', () => {
   it('maps VIGUEUR to the success badge', () => {
@@ -41,8 +50,34 @@ describe('formatConfianceBadge', () => {
     expect(formatConfianceBadge('moyenne')).toEqual({ label: 'Confiance moyenne', className: 'badge-confidence' });
   });
 
-  it('maps abstention to the danger badge', () => {
-    expect(formatConfianceBadge('abstention')).toEqual({ label: 'Abstention', className: 'badge-danger' });
+  it('maps abstention to a neutral badge, not a danger one', () => {
+    expect(formatConfianceBadge('abstention')).toEqual({ label: 'Abstention', className: 'badge-neutral' });
+  });
+});
+
+describe('formatConfidenceBanner', () => {
+  it('maps elevee to the success banner with a high gauge', () => {
+    expect(formatConfidenceBanner('elevee')).toEqual({
+      label: 'Confiance élevée',
+      className: 'confidence-banner-success',
+      gaugePercent: 92,
+    });
+  });
+
+  it('maps moyenne to the warning banner with a mid gauge', () => {
+    expect(formatConfidenceBanner('moyenne')).toEqual({
+      label: 'Confiance moyenne',
+      className: 'confidence-banner-warning',
+      gaugePercent: 58,
+    });
+  });
+
+  it('maps abstention to the neutral banner with an empty gauge', () => {
+    expect(formatConfidenceBanner('abstention')).toEqual({
+      label: 'Abstention',
+      className: 'confidence-banner-neutral',
+      gaugePercent: 0,
+    });
   });
 });
 

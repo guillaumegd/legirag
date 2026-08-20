@@ -6,19 +6,15 @@ export function SupplementaryTexts({ reponse }: { reponse: ReponseStructuree }) 
     return null;
   }
 
-  const codeReglePrincipale = reponse.regle_principale?.code;
-
   return (
     <section className="answer-block">
       <h2>Textes complémentaires ({reponse.textes_complementaires.length})</h2>
       <div className="answer-body">
-        <p className="ref-legend">Nœud plein = même code · anneau pointillé = autre code</p>
-        <ul className="ref-rail">
+        <ul className="ref-list">
           {reponse.textes_complementaires.map((texte) => (
             <RefItem
               key={`${texte.article_identifier}-${texte.subdivision}`}
               texte={texte}
-              isCrossCode={codeReglePrincipale !== undefined && texte.code !== codeReglePrincipale}
               dateReference={reponse.date_reference}
             />
           ))}

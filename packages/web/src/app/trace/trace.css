@@ -218,6 +218,12 @@
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.trace-close-button:hover {
+  background: var(--bg-alt);
+  border-color: var(--border-strong);
 }
 
 .trace-full-link {

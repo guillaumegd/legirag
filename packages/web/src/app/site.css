@@ -993,15 +993,6 @@ main {
   text-decoration: underline;
 }
 
-.history-selected-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-bottom: 1rem;
-}
-
 .history-archived-notice {
   font-size: 0.85rem;
   color: var(--muted);

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { type HistoryEntry, clearHistory, listHistoryEntries, removeHistoryEntry } from '../lib/history';
-import { formatConfianceBadge, formatDateFr, formatDateTimeFr } from '../lib/format';
+import { formatConfianceBadge, formatDateTimeFr } from '../lib/format';
+import { ConfidenceBanner } from './confidence-banner';
 import { MainRule } from './main-rule';
 import { SupplementaryTexts } from './supplementary-texts';
 import { HorsPerimetre } from './hors-perimetre';
@@ -78,15 +79,10 @@ export function HistoryView() {
           Réponse archivée localement le {formatDateTimeFr(selected.askedAt)} - le texte cité a pu évoluer depuis ;
           consultez la source officielle via le lien Légifrance.
         </p>
+        <ConfidenceBanner confiance={selected.reponse.confiance} dateReference={selected.reponse.date_reference} />
         <MainRule reponse={selected.reponse} />
         <SupplementaryTexts reponse={selected.reponse} />
         <HorsPerimetre items={selected.reponse.hors_perimetre} />
-        <div className="history-selected-meta">
-          <span className={`badge ${formatConfianceBadge(selected.reponse.confiance).className}`}>
-            {formatConfianceBadge(selected.reponse.confiance).label}
-          </span>
-          <span>{formatDateFr(selected.reponse.date_reference)}</span>
-        </div>
         <FooterBar reponse={selected.reponse} />
       </>
     );

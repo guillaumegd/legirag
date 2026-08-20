@@ -17,7 +17,10 @@ This project uses the [AI Coding Blueprint](blueprint/README.md) workflow.
 `web` (Next.js, DSFR-inspired UI) has a real dev server now - the question/answer
 screen and the agent-trace view - and `api` (NestJS) and `mcp` are built and deployed.
 See `AGENTS.md`'s Commands section for the full list, including the Playwright
-end-to-end smoke test.
+end-to-end smoke test and the mocked dev mode
+(`LEGIRAG_MOCK_BACKEND=true pnpm --filter @legirag/web dev`) that runs `web`
+standalone with fixture responses, at zero cost and with no other package or
+credentials needed.
 
 ## Reliability
 

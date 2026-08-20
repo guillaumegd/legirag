@@ -3,6 +3,14 @@ export interface SseEvent {
   data: unknown;
 }
 
+// Miroir de packages/api/src/question/sse.ts, le seul autre endroit qui
+// produit ce format - dupliqué plutôt qu'importé car packages/web n'a pas de
+// dépendance vers packages/api. Utilisé par mock-fixtures.ts (mode mock, pas
+// d'appel réseau réel) pour reproduire le flux SSE réel octet pour octet.
+export function formatSseEvent(event: string, data: unknown): string {
+  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
 export interface SseParser {
   push: (chunk: string) => SseEvent[];
 }

@@ -146,6 +146,39 @@ Deploy below).
   (push `.env.prod` to the real secret) - see `infra/README.md` for the full
   walkthrough, one-time setup, and how to tear it down
 
+### Mocked dev mode (`web` only)
+
+Run `web` standalone with a fully mocked backend, no network calls at all -
+no `api`, no `agent`, no Bedrock, no Cohere, no Supabase, so zero cost and no
+need for any of those services' env vars to be set:
+
+```
+LEGIRAG_MOCK_BACKEND=true pnpm --filter @legirag/web dev
+```
+
+Every response comes from a fixture in `packages/web/src/lib/mock-fixtures.ts`.
+Only affects the three server routes under `app/api/*`
+(`question`, `trace/[traceId]`, `article/[articleIdentifier]`); every other
+route (`/`, `/historique`, `/trace/[traceId]` page) behaves normally, reading
+whatever those mocked routes return. The flag is a no-op when
+`NODE_ENV=production` (see `packages/web/src/lib/mock-backend.ts`).
+
+The scenario is picked by a case/accent-insensitive keyword in the question
+text sent to `POST /api/question` - useful for exercising the UI states that
+a real question rarely produces on demand:
+
+| Question contains | Scenario |
+| --- | --- |
+| `"abstention"` | `confiance: 'abstention'` with `escalade`, no `regle_principale` |
+| `"erreur"` | SSE stream emits `route` then `error`, no `done` (simulated backend failure) |
+| anything else | nominal case: full answer with citations and sources |
+
+`GET /api/trace/:traceId` and `GET /api/article/:articleIdentifier` only
+recognize the fixed mocked ids used by the fixtures above (e.g.
+`mock-trace-nominal`, `mock-article-1`) and return them; any other id returns
+a real 404, so the "not found" UI state is also testable by visiting an
+unknown id directly.
+
 Testing is already configured with real tests (`packages/shared/src/*.test.ts`),
 so it is a gate for logic-bearing build steps. GitHub Actions
 (`.github/workflows/ci.yml`) already runs lint, typecheck, and test on every PR

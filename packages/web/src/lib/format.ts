@@ -66,3 +66,17 @@ export function formatDateFr(dateIso: string): string {
   }
   return `${day}/${month}/${year}`;
 }
+
+// Horodatage complet (askedAt de l'historique local) -> "30/06/2011 à 14:05".
+// Contrairement à formatDateFr (une simple date "YYYY-MM-DD"), l'entrée ici
+// est un timestamp ISO complet, donc on repasse par Date plutôt que par un
+// découpage de chaîne.
+export function formatDateTimeFr(isoTimestamp: string): string {
+  const date = new Date(isoTimestamp);
+  if (Number.isNaN(date.getTime())) {
+    return isoTimestamp;
+  }
+  const datePart = date.toLocaleDateString('fr-FR');
+  const timePart = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return `${datePart} à ${timePart}`;
+}

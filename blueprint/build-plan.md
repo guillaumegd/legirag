@@ -406,7 +406,7 @@ keep resuming 6d/10's already-stalled work rather than jump here.
   free reads (looser or no per-IP quota) - a reviewer should be able to ask
   a question and then freely inspect its trace/cited articles without
   hitting a wall.
-- [ ] 18. **Client-side local history of questions, answers, and traces** -
+- [x] 18. **Client-side local history of questions, answers, and traces** -
   a browser-only (localStorage or similar) history letting a returning
   visitor revisit questions already asked, their structured answers, and
   the associated trace, without re-asking (and re-spending quota/tokens).

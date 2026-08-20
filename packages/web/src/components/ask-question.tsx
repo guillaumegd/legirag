@@ -5,11 +5,13 @@ import { ReponseStructuree as ReponseStructureeSchema, type ReponseStructuree } 
 import { askQuestion } from '../lib/api-client';
 import { describeActivity } from '../lib/activity';
 import { extractErrorMessage } from '../lib/errors';
+import { saveHistoryEntry } from '../lib/history';
 import { ActivityIcon } from './activity-icon';
 import { MainRule } from './main-rule';
 import { SupplementaryTexts } from './supplementary-texts';
 import { HorsPerimetre } from './hors-perimetre';
 import { FooterBar } from './footer-bar';
+import { RecentHistoryPreview } from './recent-history-preview';
 
 const EXEMPLE_QUESTION = 'Est-ce que je peux rouler à 140 sur l’autoroute ?';
 const EXEMPLE_QUESTIONS = [
@@ -77,8 +79,10 @@ export function AskQuestion() {
     try {
       for await (const event of askQuestion({ question: trimmed }, controller.signal)) {
         if (event.event === 'done') {
-          setReponse(ReponseStructureeSchema.parse(event.data));
+          const parsedReponse = ReponseStructureeSchema.parse(event.data);
+          setReponse(parsedReponse);
           setStatus('done');
+          saveHistoryEntry({ id: parsedReponse.trace_id, question: trimmed, reponse: parsedReponse, askedAt: new Date().toISOString() });
         } else if (event.event === 'error') {
           setErrorMessage(extractErrorMessage(event.data));
           setStatus('error');
@@ -135,6 +139,8 @@ export function AskQuestion() {
               </button>
             ))}
           </div>
+
+          <RecentHistoryPreview />
         </>
       ) : (
         <div className="question-recap">

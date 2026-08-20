@@ -6,6 +6,9 @@ export function SiteHeader() {
           <span className="brand-mark">§</span>
           legirag
         </a>
+        <nav className="site-nav">
+          <a href="/historique">Historique</a>
+        </nav>
       </div>
     </header>
   );

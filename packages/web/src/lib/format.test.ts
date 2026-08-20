@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { asConfiance, formatConfianceBadge, formatDateFr, formatDurationMs, formatEtatBadge, formatMotifPresence } from './format.js';
+import { asConfiance, formatConfianceBadge, formatDateFr, formatDateTimeFr, formatDurationMs, formatEtatBadge, formatMotifPresence } from './format.js';
 
 describe('formatEtatBadge', () => {
   it('maps VIGUEUR to the success badge', () => {
@@ -22,6 +22,16 @@ describe('formatDateFr', () => {
 
   it('returns the input unchanged if it is not a plain ISO date', () => {
     expect(formatDateFr('garbage')).toBe('garbage');
+  });
+});
+
+describe('formatDateTimeFr', () => {
+  it('formats an ISO timestamp as jj/mm/aaaa à hh:mm', () => {
+    expect(formatDateTimeFr('2026-08-19T10:05:00.000Z')).toMatch(/^\d{2}\/\d{2}\/2026 à \d{2}:\d{2}$/);
+  });
+
+  it('returns the input unchanged if it is not a parseable timestamp', () => {
+    expect(formatDateTimeFr('garbage')).toBe('garbage');
   });
 });
 
